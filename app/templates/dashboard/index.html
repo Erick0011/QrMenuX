@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Seu Cardápio</h2>
+<a class="btn btn-primary" href="{{ url_for('dashboard.new_category') }}">Nova Categoria</a>
+<a class="btn btn-success" href="{{ url_for('dashboard.new_item') }}">Novo Prato</a>
+<hr>
+{% for cat in categories %}
+  <h4>{{ cat.name }}</h4>
+  <ul>
+    {% for item in cat.items %}
+      <li>
+        {% if item.image %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image) }}" width="50">
+        {% endif %}
+        {{ item.name }} — {{ item.price }} kz
+      </li>
+    {% endfor %}
+  </ul>
+{% endfor %}
+{% endblock %}

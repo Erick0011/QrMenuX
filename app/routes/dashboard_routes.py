@@ -1,45 +1,48 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from app import db
-from app.models import Category, MenuItem
+from app.models import db, Category, MenuItem
 import os
 from werkzeug.utils import secure_filename
-from uuid import uuid4
-from flask import current_app as app
 
-bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
+dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
-@bp.route('/')
+UPLOAD_FOLDER = "app/static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@dashboard_bp.route("/")
 @login_required
-def dashboard():
+def index():
     categories = Category.query.filter_by(restaurant_id=current_user.id).all()
-    return render_template('dashboard/index.html', categories=categories)
+    return render_template("dashboard/index.html", categories=categories)
 
-@bp.route('/add-category', methods=['GET', 'POST'])
+@dashboard_bp.route("/category/new", methods=["GET", "POST"])
 @login_required
-def add_category():
-    if request.method == 'POST':
-        name = request.form['name']
+def new_category():
+    if request.method == "POST":
+        name = request.form["name"]
         category = Category(name=name, restaurant_id=current_user.id)
         db.session.add(category)
         db.session.commit()
-        return redirect(url_for('dashboard.dashboard'))
-    return render_template('dashboard/add_category.html')
+        flash("Categoria criada com sucesso!", "success")
+        return redirect(url_for("dashboard.index"))
+    return render_template("dashboard/new_category.html")
 
-@bp.route('/add-item', methods=['GET', 'POST'])
+@dashboard_bp.route("/item/new", methods=["GET", "POST"])
 @login_required
-def add_item():
+def new_item():
     categories = Category.query.filter_by(restaurant_id=current_user.id).all()
-    if request.method == 'POST':
-        name = request.form['name']
-        price = float(request.form['price'])
-        category_id = int(request.form['category_id'])
-        image = request.files['image']
-        filename = f"{uuid4().hex}_{secure_filename(image.filename)}"
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-        item = MenuItem(name=name, price=price, image_filename=filename, category_id=category_id)
+    if request.method == "POST":
+        name = request.form["name"]
+        price = float(request.form["price"])
+        category_id = request.form["category_id"]
+        image_file = request.files["image"]
+        filename = None
+        if image_file:
+            filename = secure_filename(image_file.filename)
+            image_file.save(os.path.join(UPLOAD_FOLDER, filename))
+        item = MenuItem(name=name, price=price, image=filename, category_id=category_id)
         db.session.add(item)
         db.session.commit()
-        return redirect(url_for('dashboard.dashboard'))
-    return render_template('dashboard/add_item.html', categories=categories)
+        flash("Prato adicionado com sucesso!", "success")
+        return redirect(url_for("dashboard.index"))
+    return render_template("dashboard/new_item.html", categories=categories)
