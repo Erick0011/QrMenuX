@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Novo Prato</h3>
+<form method="POST" enctype="multipart/form-data">
+  <div class="mb-3">
+    <label class="form-label">Nome</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Preço</label>
+    <input type="number" name="price" step="0.01" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Categoria</label>
+    <select name="category_id" class="form-control" required>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}">{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Imagem (opcional)</label>
+    <input type="file" name="image" class="form-control">
+  </div>
+  <button type="submit" class="btn btn-success">Salvar</button>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">{{ restaurant.name }} — Cardápio</h2>
+
+  {% if categories %}
+    {% for category in categories %}
+      <div class="mb-4">
+        <h4 class="border-bottom pb-2">{{ category.name }}</h4>
+        <div class="row">
+          {% for item in category.items %}
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 shadow-sm">
+                {% if item.image %}
+                  <img src="{{ url_for('static', filename='uploads/' + item.image) }}" class="card-img-top" alt="{{ item.name }}">
+                {% endif %}
+                <div class="card-body">
+                  <h5 class="card-title">{{ item.name }}</h5>
+                  <p class="card-text">{{ item.price }} kz</p>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted text-center">Nenhuma categoria cadastrada ainda.</p>
+  {% endif %}
+</div>
+{% endblock %}
