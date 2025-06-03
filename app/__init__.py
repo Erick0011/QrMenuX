@@ -9,7 +9,7 @@ login_manager.login_view = 'auth.login'
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'supersecret'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///QrMenuX.db'
     app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
 
     db.init_app(app)

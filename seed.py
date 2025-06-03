@@ -1,15 +1,16 @@
 from app import create_app, db
-from app.models import User  # ajuste o import do modelo conforme o nome real
+from app.models import User, Restaurant
 from werkzeug.security import generate_password_hash
+from slugify import slugify
 
 app = create_app()
 
 with app.app_context():
-    # Verifica se o admin já existe
-    if not User.query.filter_by(email="admin@meusistema.com").first():
+    # Cria o usuário admin se não existir
+    if not User.query.filter_by(email="admin@qrmenux.com").first():
         admin_user = User(
-            email="admin@meusistema.com",
-            password=generate_password_hash("senha-super-segura", method='pbkdf2:sha256'),
+            email="admin@qrmenux.com",
+            password=generate_password_hash("12345", method='pbkdf2:sha256'),
             role="admin"
         )
         db.session.add(admin_user)
@@ -17,3 +18,64 @@ with app.app_context():
         print("Usuário admin criado com sucesso!")
     else:
         print("Usuário admin já existe.")
+
+    # Verifica se já existem restaurantes para não duplicar
+    if Restaurant.query.count() == 0:
+        users_data = [
+            {
+                "email": "rest1@example.com",
+                "password": "123456",
+                "name_owner": "Jose Fe",
+                "restaurant": {
+                    "name": "Comida Rápida Luanda",
+                    "email": "contato@comidaluanda.com",
+                    "phone": "923000111",
+                    "description": "Restaurante especializado em fast-food angolano.",
+                }
+            },
+            {
+                "email": "rest2@example.com",
+                "password": "123456",
+                "name_owner": "Jose Fe",
+                "restaurant": {
+                    "name": "Sabores da Ilha",
+                    "email": "sabores@ilha.co.ao",
+                    "phone": "923000222",
+                    "description": "Restaurante com pratos típicos e frutos do mar.",
+                }
+            },
+            {
+                "email": "rest3@example.com",
+                "password": "123456",
+                "name_owner": "Jose Fe",
+                "restaurant": {
+                    "name": "Vegano na Banda",
+                    "email": "vegan@banda.ao",
+                    "phone": "923000333",
+                    "description": "Opções 100% veganas e sustentáveis.",
+                }
+            },
+        ]
+
+        for data in users_data:
+            hashed_pw = generate_password_hash(data['password'], method='pbkdf2:sha256')
+            user = User(email=data['email'], password=hashed_pw, name=data['name_owner'])
+            db.session.add(user)
+            db.session.flush()  # pega o ID do user antes do commit
+
+            r_data = data['restaurant']
+            restaurant = Restaurant(
+                name=r_data['name'],
+                slug=slugify(r_data['name']),
+                email=r_data['email'],
+                phone=r_data['phone'],
+                description=r_data['description'],
+                is_active=True,
+                owner_id=user.id
+            )
+            db.session.add(restaurant)
+
+        db.session.commit()
+        print("Usuários e restaurantes criados com sucesso!")
+    else:
+        print("Restaurantes já existem no banco.")
