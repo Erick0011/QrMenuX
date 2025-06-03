@@ -25,7 +25,7 @@ with app.app_context():
             {
                 "email": "rest1@example.com",
                 "password": "123456",
-                "name_owner": "Jose Fe",
+
                 "restaurant": {
                     "name": "Comida Rápida Luanda",
                     "email": "contato@comidaluanda.com",
@@ -36,7 +36,7 @@ with app.app_context():
             {
                 "email": "rest2@example.com",
                 "password": "123456",
-                "name_owner": "Jose Fe",
+
                 "restaurant": {
                     "name": "Sabores da Ilha",
                     "email": "sabores@ilha.co.ao",
@@ -47,7 +47,7 @@ with app.app_context():
             {
                 "email": "rest3@example.com",
                 "password": "123456",
-                "name_owner": "Jose Fe",
+
                 "restaurant": {
                     "name": "Vegano na Banda",
                     "email": "vegan@banda.ao",
@@ -59,7 +59,7 @@ with app.app_context():
 
         for data in users_data:
             hashed_pw = generate_password_hash(data['password'], method='pbkdf2:sha256')
-            user = User(email=data['email'], password=hashed_pw, name=data['name_owner'])
+            user = User(email=data['email'], password=hashed_pw)
             db.session.add(user)
             db.session.flush()  # pega o ID do user antes do commit
 
