@@ -1,7 +1,8 @@
 from flask_login import UserMixin
 from . import db
 from . import login_manager
-from utils import now_angola
+from app.utils import now_angola
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

@@ -15,10 +15,11 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
-    from .routes import auth_routes, dashboard_routes, public_routes
+    from .routes import auth_routes, dashboard_routes, public_routes, admin_routes
     app.register_blueprint(auth_routes.bp)
     app.register_blueprint(dashboard_routes.bp)
     app.register_blueprint(public_routes.bp)
+    app.register_blueprint(admin_routes.bp)
 
     return app
 

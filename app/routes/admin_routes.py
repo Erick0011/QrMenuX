@@ -3,3 +3,9 @@ from flask_login import login_required, current_user
 from app.models import db, Category, MenuItem
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+@bp.route("/")
+@login_required
+def dashboard():
+
+    return render_template("admin/dashboard.html", current_user=current_user)

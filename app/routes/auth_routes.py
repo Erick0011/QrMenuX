@@ -6,25 +6,11 @@ from app import db
 from flask import current_app as app
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-""" 
+
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+    return "Entre em contacto para criar a sua conta"
 
-        if Restaurant.query.filter_by(email=email).first():
-            flash("Email já cadastrado", 'danger')
-            return redirect(url_for('auth.register'))
-
-        new_restaurant = Restaurant(name=name, email=email, password=password)
-        db.session.add(new_restaurant)
-        db.session.commit()
-        flash("Conta criada com sucesso!", 'success')
-        return redirect(url_for('auth.login'))
-    return render_template('auth/register.html')
-"""
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
