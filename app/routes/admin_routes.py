@@ -1,6 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from app.models import db, User, Restaurant
+from werkzeug.security import generate_password_hash
+from app.models import db, User, Restaurant, Subscription
+from datetime import datetime
+from slugify import slugify
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -9,22 +12,132 @@ bp = Blueprint("admin", __name__, url_prefix="/admin")
 def dashboard():
     return render_template("admin/dashboard.html", current_user=current_user)
 
-@bp.route("/create_user")
+@bp.route("/create_user", methods=['POST'])
 @login_required
 def create_user():
-    return render_template("admin/create_restaurant.html", current_user=current_user)
+    try:
+        # Coletar dados do formulário
+        user_email = request.form['user_email']
+        user_password = request.form['user_password']
+        restaurant_name = request.form['restaurant_name']
+        restaurant_email = request.form['restaurant_email']
+        restaurant_phone = request.form.get('restaurant_phone')
+        subscription_end_str = request.form['subscription_end_date']
 
-@bp.route('/admin/user/<int:user_id>/edit')
-def edit_user(user_id):
-    return f"Edição temporária do usuário {user_id}"
+        # Criar usuário
+        user = User(
+            email=user_email,
+            password=generate_password_hash(user_password),
+            role='restaurant'
+        )
+        db.session.add(user)
+        db.session.flush()  # pega o ID do usuário antes de commit
+
+        # Criar restaurante
+        restaurant = Restaurant(
+            owner_id=user.id,
+            name=restaurant_name,
+            slug=slugify(restaurant_name),
+            email=restaurant_email,
+            phone=restaurant_phone,
+            is_active=True
+        )
+        db.session.add(restaurant)
+        db.session.flush()
+
+        # Criar assinatura
+        subscription_end = datetime.strptime(subscription_end_str, "%Y-%m-%d")
+        subscription = Subscription(
+            restaurant_id=restaurant.id,
+            end_date=subscription_end,
+            is_active=True
+        )
+        db.session.add(subscription)
+
+        db.session.commit()
+        flash('Usuário, restaurante e assinatura criados com sucesso.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao criar usuário: {e}', 'danger')
+
+    return redirect(url_for('admin.users'))
+
+@bp.route('/admin/update_user/<int:user_id>', methods=['POST'])
+@login_required
+def update_user(user_id):
+    try:
+        user = User.query.get_or_404(user_id)
+
+        # Atualizar e-mail
+        user.email = request.form['user_email']
+
+        # Atualizar senha se fornecida
+        password = request.form.get('user_password')
+        if password:
+            user.password = generate_password_hash(password)
+
+        # Atualizar dados do restaurante
+        restaurant = user.restaurant
+        restaurant.name = request.form['restaurant_name']
+        restaurant.slug = slugify(restaurant.name)
+        restaurant.email = request.form['restaurant_email']
+        restaurant.phone = request.form['restaurant_phone']
+
+        db.session.commit()
+        flash('Dados do usuário atualizados com sucesso.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao atualizar dados do usuário: {e}', 'danger')
+
+    return redirect(url_for('admin.users'))
+
 
 @bp.route('/admin/toggle_user_status/<int:user_id>')
 def toggle_user_status(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Verifica se o usuário tem restaurante
+    if user.restaurant:
+        user.restaurant.is_active = not user.restaurant.is_active
+        db.session.commit()
+
     return redirect(url_for('admin.users'))
 
-@bp.route('/admin/delete_user/<int:user_id>')
+
+@bp.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
 def delete_user(user_id):
+    try:
+        # Buscar usuário
+        user = User.query.get_or_404(user_id)
+
+        # Buscar restaurante associado
+        restaurant = user.restaurant
+        if restaurant:
+            # Excluir assinatura se houver
+            if restaurant.subscription:
+                db.session.delete(restaurant.subscription)
+
+            # Excluir itens de menu ligados às categorias
+            for category in restaurant.categories:
+                for item in category.items:
+                    db.session.delete(item)
+                db.session.delete(category)
+
+            # Excluir restaurante
+            db.session.delete(restaurant)
+
+        # Excluir usuário
+        db.session.delete(user)
+
+        db.session.commit()
+        flash("Usuário e dados relacionados foram excluídos com sucesso.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir usuário: {e}", "danger")
+
     return redirect(url_for('admin.users'))
+
 
 @bp.route("/users")
 @login_required
