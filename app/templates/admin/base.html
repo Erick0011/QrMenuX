@@ -99,7 +99,12 @@
                 </li>
                 <li class="nav-item mb-2">
                     <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
-                        <i class="bi bi-shop"></i> Criar Restaurante
+                        <i class="bi bi-shop"></i> Gerir Usuarios
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link {% if request.endpoint == 'admin.subscriptions' %}active{% endif %}" href="{{ url_for('admin.subscriptions') }}">
+                        <i class="bi bi-shop"></i> Assinaturas
                     </a>
                 </li>
                 <li class="nav-item mb-2">

@@ -1,7 +1,10 @@
 from app import create_app, db
-from app.models import User, Restaurant
+from app.models import User, Restaurant, Subscription
 from werkzeug.security import generate_password_hash
 from slugify import slugify
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+from app.utils import now_angola  # ou ajuste conforme o local do now_angola()
 
 app = create_app()
 
@@ -19,41 +22,41 @@ with app.app_context():
     else:
         print("Usuário admin já existe.")
 
-    # Verifica se já existem restaurantes para não duplicar
+    # Verifica se já existem restaurantes
     if Restaurant.query.count() == 0:
         users_data = [
             {
                 "email": "rest1@example.com",
                 "password": "123456",
-
                 "restaurant": {
                     "name": "Comida Rápida Luanda",
                     "email": "contato@comidaluanda.com",
                     "phone": "923000111",
                     "description": "Restaurante especializado em fast-food angolano.",
-                }
+                },
+                "extend": {"months": 1}
             },
             {
                 "email": "rest2@example.com",
                 "password": "123456",
-
                 "restaurant": {
                     "name": "Sabores da Ilha",
                     "email": "sabores@ilha.co.ao",
                     "phone": "923000222",
                     "description": "Restaurante com pratos típicos e frutos do mar.",
-                }
+                },
+                "extend": {"days": 7}
             },
             {
                 "email": "rest3@example.com",
                 "password": "123456",
-
                 "restaurant": {
                     "name": "Vegano na Banda",
                     "email": "vegan@banda.ao",
                     "phone": "923000333",
                     "description": "Opções 100% veganas e sustentáveis.",
-                }
+                },
+                "extend": {"months": -1}  # expirado
             },
         ]
 
@@ -61,7 +64,7 @@ with app.app_context():
             hashed_pw = generate_password_hash(data['password'], method='pbkdf2:sha256')
             user = User(email=data['email'], password=hashed_pw)
             db.session.add(user)
-            db.session.flush()  # pega o ID do user antes do commit
+            db.session.flush()
 
             r_data = data['restaurant']
             restaurant = Restaurant(
@@ -74,8 +77,23 @@ with app.app_context():
                 owner_id=user.id
             )
             db.session.add(restaurant)
+            db.session.flush()
+
+            # Cria uma assinatura e aplica extensão conforme seed
+            now = now_angola()
+            start_date = now
+            end_date = now + timedelta(days=data['extend'].get('days', 0)) + relativedelta(months=data['extend'].get('months', 0))
+            is_active = end_date > now
+
+            subscription = Subscription(
+                restaurant_id=restaurant.id,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=is_active
+            )
+            db.session.add(subscription)
 
         db.session.commit()
-        print("Usuários e restaurantes criados com sucesso!")
+        print("Usuários, restaurantes e assinaturas criados com sucesso!")
     else:
         print("Restaurantes já existem no banco.")

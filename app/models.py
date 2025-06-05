@@ -2,6 +2,8 @@ from flask_login import UserMixin
 from . import db
 from . import login_manager
 from app.utils import now_angola
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -36,6 +38,24 @@ class Subscription(db.Model):
     start_date = db.Column(db.DateTime, default=now_angola())
     end_date = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
+
+    def extend(self, days=0, months=0):
+        now = now_angola()
+        base_date = self.end_date if self.end_date and self.end_date > now else now
+
+        # Adiciona dias e meses
+        new_end_date = base_date + timedelta(days=days) + relativedelta(months=months)
+
+        self.start_date = self.start_date or now
+        self.end_date = new_end_date
+        self.is_active = True
+        db.session.commit()
+
+    def has_expired(self):
+        return self.end_date < now_angola()
+
+    def days_remaining(self):
+        return (self.end_date - now_angola()).days if self.end_date else 0
 
 
 class Category(db.Model):

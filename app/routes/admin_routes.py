@@ -160,3 +160,33 @@ def users():
     users = query.all()
 
     return render_template('admin/users.html', users=users, search=search)
+
+@bp.route('/admin/subscriptions')
+@login_required
+def subscriptions():
+    restaurants = Restaurant.query.join(Subscription).order_by(Subscription.end_date.asc()).all()
+    return render_template('admin/subscriptions.html', restaurants=restaurants)
+
+
+@bp.route('/admin/subscription/extend/<int:restaurant_id>')
+@login_required
+def extend_subscription(restaurant_id):
+    days = int(request.args.get('days', 0))
+    months = int(request.args.get('months', 0))
+
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    if restaurant.subscription:
+        restaurant.subscription.extend(days=days, months=months)
+    return redirect(url_for('admin.subscriptions'))
+
+
+@bp.route('/admin/subscription/reminder/<int:restaurant_id>')
+@login_required
+def send_reminder(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    sub = restaurant.subscription
+    if sub:
+        dias = sub.days_remaining()
+        print(f"[MOCK EMAIL] Restaurante {restaurant.name} - {dias} dias restantes.")
+        print(f"[MOCK WHATSAPP] Número {restaurant.phone} - expira em {dias} dias.")
+    return redirect(url_for('admin.subscriptions'))
