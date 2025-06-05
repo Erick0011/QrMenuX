@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from . import db
 from . import login_manager
-from app.utils import now_angola
+from app.utils.now_angola import now_angola
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 

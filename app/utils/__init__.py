@@ -1,2 +1,3 @@
-import now_angola
-import check_and_deactivate_expired
+from app.utils.now_angola import now_angola
+
+from app.utils.check_and_deactivate_expired import check_and_deactivate_expired
