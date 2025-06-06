@@ -1,52 +1,69 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Criar Restaurante{% endblock %}
+{% block title %}Gestão de Assinaturas{% endblock %}
 
 {% block content %}
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Restaurante</th>
-      <th>Expira em</th>
-      <th>Dias restantes</th>
-      <th>Status</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in restaurants %}
-      {% set sub = r.subscription %}
-      {% set dias = sub.days_remaining() %}
-      <tr style="background-color:
-        {% if sub.has_expired() %}#f8d7da
-        {% elif dias <= 5 %}#fff3cd
-        {% else %}#d4edda{% endif %};">
+<div class="container my-4">
+  <h3 class="mb-4"><i class="bi bi-calendar-check-fill me-2"></i> Assinaturas dos Restaurantes</h3>
 
-        <td>{{ r.name }}</td>
-        <td>{{ sub.end_date.strftime('%d/%m/%Y') }}</td>
-        <td>{{ dias }}</td>
-        <td>
-          {% if sub.has_expired() %}
-            <span class="badge bg-danger">Expirada</span>
-          {% elif dias <= 5 %}
-            <span class="badge bg-warning text-dark">Quase</span>
-          {% else %}
-            <span class="badge bg-success">Ativa</span>
-          {% endif %}
-        </td>
-        <td>
-            <div class="btn-group" role="group">
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, days=7) }}" class="btn btn-sm btn-primary">+7 dias</a>
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=1) }}" class="btn btn-sm btn-secondary">+1 mês</a>
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=3) }}" class="btn btn-sm btn-dark">+3 meses</a>
-              <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}" class="btn btn-sm btn-outline-secondary">Enviar lembrete</a>
-            </div>
-
-
-        </td>
+  <table class="table table-bordered table-hover align-middle text-center">
+    <thead class="table-dark">
+      <tr>
+        <th>Restaurante</th>
+        <th>Expira em</th>
+        <th>Dias restantes</th>
+        <th>Status</th>
+        <th>Ações</th>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      {% for r in restaurants %}
+        {% set sub = r.subscription %}
+        {% set dias = sub.days_remaining() %}
+        <tr style="background-color:
+          {% if sub.has_expired() %}#f8d7da
+          {% elif dias <= 5 %}#fff3cd
+          {% else %}#d4edda{% endif %};">
 
+          <td>{{ r.name }}</td>
+          <td>{{ sub.end_date.strftime('%d/%m/%Y') }}</td>
+          <td><strong>{{ dias }}</strong></td>
+          <td>
+            {% if sub.has_expired() %}
+              <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Expirada</span>
+            {% elif dias <= 5 %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Quase</span>
+            {% else %}
+              <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Ativa</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group" role="group">
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, days=7) }}"
+                 class="btn btn-sm btn-primary"
+                 data-bs-toggle="tooltip" title="+7 dias">
+                <i class="bi bi-plus-circle"></i>
+              </a>
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=1) }}"
+                 class="btn btn-sm btn-secondary"
+                 data-bs-toggle="tooltip" title="+1 mês">
+                <i class="bi bi-calendar-plus"></i>
+              </a>
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=3) }}"
+                 class="btn btn-sm btn-dark"
+                 data-bs-toggle="tooltip" title="+3 meses">
+                <i class="bi bi-calendar2-plus"></i>
+              </a>
+              <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}"
+                 class="btn btn-sm btn-outline-secondary"
+                 data-bs-toggle="tooltip" title="Enviar lembrete">
+                <i class="bi bi-envelope-fill"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
