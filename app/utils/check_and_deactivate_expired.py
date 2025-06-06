@@ -1,10 +1,11 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from app import create_app, db
-from app.models import Subscription
 
 app = create_app()
 
 def check_and_deactivate_expired():
+    from app.models import Subscription
+
     with app.app_context():
         subs = Subscription.query.filter_by(is_active=True).all()
         for s in subs:
