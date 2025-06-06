@@ -35,8 +35,14 @@
           {% endif %}
         </td>
         <td>
-          <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, days=7) }}" class="btn btn-sm btn-primary">+7 dias</a>
-          <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}" class="btn btn-sm btn-outline-secondary">Enviar lembrete</a>
+            <div class="btn-group" role="group">
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, days=7) }}" class="btn btn-sm btn-primary">+7 dias</a>
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=1) }}" class="btn btn-sm btn-secondary">+1 mês</a>
+              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=3) }}" class="btn btn-sm btn-dark">+3 meses</a>
+              <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}" class="btn btn-sm btn-outline-secondary">Enviar lembrete</a>
+            </div>
+
+
         </td>
       </tr>
     {% endfor %}

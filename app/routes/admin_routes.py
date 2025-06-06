@@ -168,7 +168,7 @@ def subscriptions():
     return render_template('admin/subscriptions.html', restaurants=restaurants)
 
 
-@bp.route('/admin/subscription/extend/<int:restaurant_id>')
+@bp.route('/subscription/extend/<int:restaurant_id>')
 @login_required
 def extend_subscription(restaurant_id):
     days = int(request.args.get('days', 0))
@@ -180,7 +180,7 @@ def extend_subscription(restaurant_id):
     return redirect(url_for('admin.subscriptions'))
 
 
-@bp.route('/admin/subscription/reminder/<int:restaurant_id>')
+@bp.route('/subscription/reminder/<int:restaurant_id>')
 @login_required
 def send_reminder(restaurant_id):
     restaurant = Restaurant.query.get_or_404(restaurant_id)

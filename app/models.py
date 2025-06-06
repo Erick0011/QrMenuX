@@ -44,6 +44,11 @@ class Subscription(db.Model):
 
     def extend(self, days=0, months=0):
         now = now_angola()
+
+        # Converter end_date para timezone-aware se necessário
+        if self.end_date and self.end_date.tzinfo is None:
+            self.end_date = pytz.timezone("Africa/Luanda").localize(self.end_date)
+
         base_date = self.end_date if self.end_date and self.end_date > now else now
 
         new_end_date = base_date + timedelta(days=days) + relativedelta(months=months)
