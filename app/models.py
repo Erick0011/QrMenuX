@@ -1,9 +1,9 @@
 from flask_login import UserMixin
-from . import db
-from . import login_manager
+from . import db, login_manager
 from app.utils.now_angola import now_angola
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import pytz
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -32,10 +32,13 @@ class Restaurant(db.Model):
     categories = db.relationship('Category', backref='restaurant', lazy=True)
 
 
+
+
+
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), unique=True)
-    start_date = db.Column(db.DateTime, default=now_angola())
+    start_date = db.Column(db.DateTime, default=lambda: now_angola())
     end_date = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
 
@@ -43,7 +46,6 @@ class Subscription(db.Model):
         now = now_angola()
         base_date = self.end_date if self.end_date and self.end_date > now else now
 
-        # Adiciona dias e meses
         new_end_date = base_date + timedelta(days=days) + relativedelta(months=months)
 
         self.start_date = self.start_date or now
@@ -52,10 +54,23 @@ class Subscription(db.Model):
         db.session.commit()
 
     def has_expired(self):
-        return self.end_date < now_angola()
+        if self.end_date is None:
+            return True
+
+        return self._end_date_with_tz() < now_angola()
 
     def days_remaining(self):
-        return (self.end_date - now_angola()).days if self.end_date else 0
+        if self.end_date is None:
+            return 0
+
+        return (self._end_date_with_tz() - now_angola()).days
+
+    def _end_date_with_tz(self):
+        """Converte end_date para timezone de Angola, se necessário"""
+        if self.end_date.tzinfo is None or self.end_date.tzinfo.utcoffset(self.end_date) is None:
+            return self.end_date.replace(tzinfo=pytz.timezone("Africa/Luanda"))
+        return self.end_date
+
 
 
 class Category(db.Model):

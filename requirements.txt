@@ -5,3 +5,4 @@ python-slugify~=8.0.4
 python-dateutil~=2.9.0.post0
 APScheduler~=3.11.0
 Faker~=37.3.0
+pytz~=2025.2
