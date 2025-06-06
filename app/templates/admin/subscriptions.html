@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="container my-4">
-  <h3 class="mb-4"><i class="bi bi-calendar-check-fill me-2"></i> Assinaturas dos Restaurantes</h3>
+  <h3 class="mb-4"><i class="bi bi-shop me-2"></i> Assinaturas dos Restaurantes</h3>
 
   <table class="table table-bordered table-hover align-middle text-center">
-    <thead class="table-dark">
+    <thead class="table-success">
       <tr>
         <th>Restaurante</th>
         <th>Expira em</th>
@@ -38,32 +38,54 @@
             {% endif %}
           </td>
           <td>
-            <div class="btn-group" role="group">
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, days=7) }}"
-                 class="btn btn-sm btn-primary"
-                 data-bs-toggle="tooltip" title="+7 dias">
-                <i class="bi bi-plus-circle"></i>
-              </a>
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=1) }}"
-                 class="btn btn-sm btn-secondary"
-                 data-bs-toggle="tooltip" title="+1 mês">
-                <i class="bi bi-calendar-plus"></i>
-              </a>
-              <a href="{{ url_for('admin.extend_subscription', restaurant_id=r.id, months=3) }}"
-                 class="btn btn-sm btn-dark"
-                 data-bs-toggle="tooltip" title="+3 meses">
-                <i class="bi bi-calendar2-plus"></i>
-              </a>
-              <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}"
-                 class="btn btn-sm btn-outline-secondary"
-                 data-bs-toggle="tooltip" title="Enviar lembrete">
-                <i class="bi bi-envelope-fill"></i>
-              </a>
-            </div>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalExtensao" data-restaurant="{{ r.id }}">
+              <i class="bi bi-gear-fill"></i> Gerir
+            </button>
+            <a href="{{ url_for('admin.send_reminder', restaurant_id=r.id) }}"
+               class="btn btn-sm btn-outline-secondary"
+               data-bs-toggle="tooltip" title="Enviar lembrete">
+              <i class="bi bi-envelope-fill"></i>
+            </a>
           </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalExtensao" tabindex="-1" aria-labelledby="modalExtensaoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalExtensaoLabel"><i class="bi bi-clock-history me-2"></i>Extender Assinatura</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Escolha o tempo que deseja adicionar à assinatura:</p>
+        <div class="d-grid gap-2">
+          <a id="btn7dias" class="btn btn-outline-success">+7 dias</a>
+          <a id="btn1mes" class="btn btn-outline-success">+1 mês</a>
+          <a id="btn3meses" class="btn btn-outline-success">+3 meses</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modalExtensao = document.getElementById('modalExtensao');
+  modalExtensao.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const restaurantId = button.getAttribute('data-restaurant');
+
+    document.getElementById('btn7dias').href = `/admin/extend_subscription/${restaurantId}?days=7`;
+    document.getElementById('btn1mes').href = `/admin/extend_subscription/${restaurantId}?months=1`;
+    document.getElementById('btn3meses').href = `/admin/extend_subscription/${restaurantId}?months=3`;
+  });
+
+  // Tooltip init
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  const tooltipList = tooltipTriggerList.map(t => new bootstrap.Tooltip(t));
+</script>
 {% endblock %}
