@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}QrMenuX - Painel{% endblock %}</title>
+  <title>QrMenuX -{% block title %} Painel{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -35,7 +35,7 @@
   </style>
 </head>
 <body>
-
+  {% include 'modal.html' %}
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark shadow">
     <div class="container-fluid">
@@ -51,19 +51,19 @@
 
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('dashboard.subscription') }}">
-              <i class="bi bi-shop me-1"></i>Assinatura
+              <i class="bi bi-qr-code"></i> Meu QR Code
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('dashboard.categories') }}">
+            <a class="nav-link" href="{{ url_for('dashboard.list_categories') }}">
               <i class="bi bi-tags me-1"></i>Categorias
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('dashboard.menu') }}">
-              <i class="bi bi-list-ul me-1"></i>Cardápio
+            <a class="nav-link" href="{{ url_for('dashboard.list_items') }}">
+              <i class="bi bi-list-ul me-1"></i> Pratos / Cardápio
             </a>
           </li>
 
@@ -73,6 +73,7 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="{{ url_for('dashboard.profile') }}">Perfil</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('dashboard.subscription') }}">Assinatura</a></li>
               <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Sair</a></li>
             </ul>
           </li>

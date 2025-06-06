@@ -1,0 +1,136 @@
+{% extends "dashboard/dashboard_base.html" %}
+{% block title %}Pratos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>Pratos</h3>
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createItemModal">
+    <i class="bi bi-plus-circle"></i> Novo Prato
+  </button>
+</div>
+
+<!-- Dropdown de Categorias -->
+<div class="mb-4">
+  <form method="GET" action="{{ url_for('dashboard.list_items') }}">
+    <label for="categorySelect" class="form-label">Selecione a Categoria:</label>
+    <div class="input-group">
+      <select class="form-select" id="categorySelect" name="category_id" onchange="this.form.submit()">
+        {% for category in categories %}
+          <option value="{{ category.id }}" {% if category.id == selected_category.id %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+<!-- Listagem de Pratos -->
+<div class="row">
+  {% for item in items %}
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card h-100 shadow-sm">
+        {% if item.image_filename %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" class="card-img-top" alt="{{ item.name }}">
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">{{ item.name }}</h5>
+          <p class="card-text">{{ item.description }}</p>
+          <p class="card-text"><strong>Preço:</strong> Kz {{ item.price }}</p>
+          <span class="badge bg-{{ 'success' if item.is_active else 'secondary' }}">
+            {{ 'Ativo' if item.is_active else 'Inativo' }}
+          </span>
+          <div class="mt-3 d-flex justify-content-between">
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+              data-bs-target="#editItemModal{{ item.id }}">Editar</button>
+            <a href="{{ url_for('dashboard.toggle_item', item_id=item.id) }}"
+               class="btn btn-outline-secondary btn-sm">
+              {{ 'Desativar' if item.is_active else 'Ativar' }}
+            </a>
+            <a href="{{ url_for('dashboard.delete_item', item_id=item.id) }}"
+               class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('Deseja realmente excluir este prato?');">
+              Excluir
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="editItemModal{{ item.id }}" tabindex="-1"
+         aria-labelledby="editItemModalLabel{{ item.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('dashboard.edit_item', item_id=item.id) }}" enctype="multipart/form-data" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editItemModalLabel{{ item.id }}">Editar Prato</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="editName{{ item.id }}" class="form-label">Nome</label>
+              <input type="text" name="name" id="editName{{ item.id }}" class="form-control"
+                     value="{{ item.name }}" required>
+            </div>
+            <div class="mb-3">
+              <label for="editDescription{{ item.id }}" class="form-label">Descrição</label>
+              <textarea name="description" id="editDescription{{ item.id }}" class="form-control" rows="3">{{ item.description }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editPrice{{ item.id }}" class="form-label">Preço</label>
+              <input type="number" name="price" id="editPrice{{ item.id }}" class="form-control"
+                     value="{{ item.price }}" step="0.01" required>
+            </div>
+            <div class="mb-3">
+              <label for="editImage{{ item.id }}" class="form-label">Imagem</label>
+              <input type="file" name="image" id="editImage{{ item.id }}" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% else %}
+    <p class="text-muted">Nenhum prato cadastrado nesta categoria.</p>
+  {% endfor %}
+</div>
+
+<!-- Modal de Criação -->
+<div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('dashboard.create_item') }}" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createItemModalLabel">Novo Prato</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="itemName" class="form-label">Nome</label>
+          <input type="text" class="form-control" name="name" id="itemName" required>
+        </div>
+        <div class="mb-3">
+          <label for="itemDescription" class="form-label">Descrição</label>
+          <textarea class="form-control" name="description" id="itemDescription" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="itemPrice" class="form-label">Preço</label>
+          <input type="number" class="form-control" name="price" id="itemPrice" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label for="itemImage" class="form-label">Imagem</label>
+          <input type="file" class="form-control" name="image" id="itemImage">
+        </div>
+        <input type="hidden" name="category_id" value="{{ selected_category.id }}">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Criar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

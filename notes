@@ -1,0 +1,31 @@
+✅ Página de categorias (usando o base acima):
+
+    Botão “Nova categoria”
+
+    Lista de categorias com:
+
+        Nome
+
+        Quantos pratos tem
+
+        Status (ativo/desativado)
+
+        Botões: Editar / Desativar / Excluir
+
+✅ Página de itens (pratos):
+
+    Escolher a categoria no topo (dropdown ou abas)
+
+    Listagem dos pratos da categoria escolhida
+
+    Botão: “Novo prato”
+
+    Ações para: editar, desativar, excluir
+
+✅ Página de QR code:
+
+    Mostrar o link do cardápio
+
+    Gerar e exibir o QR code
+
+    Botão copiar link
