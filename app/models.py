@@ -81,8 +81,10 @@ class Subscription(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
     items = db.relationship('MenuItem', backref='category', lazy=True)
+
 
 
 class MenuItem(db.Model):
@@ -92,6 +94,7 @@ class MenuItem(db.Model):
     image_filename = db.Column(db.String(100))
     description = db.Column(db.Text)
     ingredients = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
 
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
