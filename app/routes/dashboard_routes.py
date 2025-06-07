@@ -23,9 +23,6 @@ def subscription():
     subscription = restaurant.subscription if restaurant else None
     return render_template("dashboard/subscription.html", subscription=subscription)
 
-
-
-
 @bp.route("/categories", methods=["GET", "POST"])
 @login_required
 def list_categories():
@@ -195,14 +192,20 @@ def edit_item(item_id):
 @login_required
 def toggle_item(item_id):
     item = MenuItem.query.get_or_404(item_id)
+
     if item.category.restaurant != current_user.restaurant:
         flash("Acesso negado.", "danger")
         return redirect(url_for('dashboard.list_items'))
+
+    if not item.is_active and not item.category.is_active:
+        flash("Não é possível ativar este prato porque a categoria está desativada.", "warning")
+        return redirect(url_for('dashboard.list_items', category_id=item.category.id))
 
     item.is_active = not item.is_active
     db.session.commit()
     flash("Estado do prato alterado.", "info")
     return redirect(url_for('dashboard.list_items', category_id=item.category.id))
+
 
 @bp.route("/items/<int:item_id>/delete")
 @login_required
