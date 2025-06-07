@@ -4,7 +4,10 @@ import os
 from werkzeug.utils import secure_filename
 from app.models import db, Category, MenuItem
 from flask import current_app
-
+import qrcode
+import io
+import base64
+from flask import send_file
 
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
@@ -251,4 +254,18 @@ def profile():
         return redirect(url_for('dashboard.profile'))
 
     return render_template("dashboard/profile.html", user=user, restaurant=restaurant, active_page="profile")
+
+@bp.route('/qrcode')
+@login_required
+def qrcode_page():
+    restaurant = current_user.restaurant
+    link = url_for('public.menu', slug=restaurant.slug, _external=True)
+
+    # Gerar QR Code em memória
+    qr_img = qrcode.make(link)
+    buf = io.BytesIO()
+    qr_img.save(buf, format='PNG')
+    qr_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    return render_template("dashboard/qrcode.html", link=link, qr_data=qr_data, active_page="qrcode")
 
