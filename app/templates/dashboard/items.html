@@ -62,6 +62,8 @@
          aria-labelledby="editItemModalLabel{{ item.id }}" aria-hidden="true">
       <div class="modal-dialog">
         <form method="POST" action="{{ url_for('dashboard.edit_item', item_id=item.id) }}" enctype="multipart/form-data" class="modal-content">
+          <input type="hidden" name="category_id" value="{{ item.category_id }}">
+
           <div class="modal-header">
             <h5 class="modal-title" id="editItemModalLabel{{ item.id }}">Editar Prato</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>

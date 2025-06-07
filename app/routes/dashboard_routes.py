@@ -92,34 +92,35 @@ def list_items():
 @bp.route("/items/create", methods=["POST"])
 @login_required
 def create_item():
-    name = request.form.get("name").strip()
+    name = request.form.get("name")
     description = request.form.get("description")
     price = request.form.get("price", type=float)
     category_id = request.form.get("category_id", type=int)
     image = request.files.get("image")
 
     category = Category.query.get_or_404(category_id)
-    restaurant = current_user.restaurant
-
-    if category.restaurant != restaurant:
+    if category.restaurant != current_user.restaurant:
         flash("Acesso negado.", "danger")
         return redirect(url_for('dashboard.list_items'))
 
     filename = None
     if image and name:
-        # Criar nome seguro para o arquivo com base no nome do prato
-        ext = os.path.splitext(image.filename)[1]  # ex: '.jpg'
-        safe_name = secure_filename(name.lower().replace(" ", "_")) + ext
+        # Criar nome seguro para a imagem
+        ext = os.path.splitext(image.filename)[1]
+        safe_image_name = secure_filename(name.lower().replace(" ", "_")) + ext
 
-        # Pasta com o nome (slug) do restaurante
-        folder = os.path.join("static", "uploads", restaurant.slug)
-        os.makedirs(folder, exist_ok=True)  # cria se não existir
+        # Pasta do restaurante dentro de /static/uploads/
+        restaurant_slug = current_user.restaurant.slug
+        relative_folder = os.path.join("uploads", restaurant_slug)
+        absolute_folder = os.path.join(current_app.root_path, "static", relative_folder)
+        os.makedirs(absolute_folder, exist_ok=True)
 
-        filepath = os.path.join(folder, safe_name)
-        image.save(filepath)
+        # Caminho final absoluto + salvar
+        image_path = os.path.join(absolute_folder, safe_image_name)
+        image.save(image_path)
 
-        # Caminho relativo salvo no banco
-        filename = f"{restaurant.slug}/{safe_name}"
+        # Caminho relativo para salvar no banco
+        filename = os.path.join(relative_folder, safe_image_name).replace("\\", "/")
 
     new_item = MenuItem(
         name=name,
@@ -128,13 +129,13 @@ def create_item():
         image_filename=filename,
         category=category
     )
-
     db.session.add(new_item)
     db.session.commit()
+
     flash("Prato criado com sucesso!", "success")
     return redirect(url_for('dashboard.list_items', category_id=category_id))
 
-@bp.route("/items/edit/<int:item_id>", methods=["POST"])
+@bp.route("/items/edit/<int:item_id>", methods=["POST", "GET"])
 @login_required
 def edit_item(item_id):
     item = MenuItem.query.get_or_404(item_id)
@@ -175,7 +176,7 @@ def edit_item(item_id):
     db.session.commit()
     flash("Prato atualizado com sucesso!", "success")
     return redirect(url_for('dashboard.list_items', category_id=category_id))
-
+ 
 
 @bp.route("/items/<int:item_id>/toggle")
 @login_required
