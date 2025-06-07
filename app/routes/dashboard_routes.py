@@ -16,12 +16,21 @@ def index():
     # Página inicial do painel
     return render_template("dashboard/index.html")
 
-@bp.route("/assinatura")
+@bp.route("/subscription", methods=["GET"])
 @login_required
 def subscription():
     restaurant = current_user.restaurant
-    subscription = restaurant.subscription if restaurant else None
-    return render_template("dashboard/subscription.html", subscription=subscription)
+    sub = restaurant.subscription
+
+    days_left = sub.days_remaining() if sub and sub.end_date else 0
+    expired = not sub or sub.has_expired()
+
+    return render_template("dashboard/subscription.html",
+                           subscription=sub,
+                           days_left=days_left,
+                           expired=expired,
+                           active_page="subscription")
+
 
 @bp.route("/categories", methods=["GET", "POST"])
 @login_required
@@ -220,9 +229,26 @@ def delete_item(item_id):
     flash("Prato excluído com sucesso!", "warning")
     return redirect(url_for('dashboard.list_items', category_id=item.category.id))
 
-
-@bp.route("/perfil")
+@bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    restaurant = current_user.restaurant
-    return render_template("dashboard/profile.html", restaurant=restaurant)
+    user = current_user
+    restaurant = user.restaurant
+
+    if request.method == "POST":
+        user.email = request.form.get("user_email").strip()
+        new_password = request.form.get("user_password").strip()
+        if new_password:
+            from werkzeug.security import generate_password_hash
+            user.password = generate_password_hash(new_password)
+
+        restaurant.email = request.form.get("restaurant_email").strip()
+        restaurant.phone = request.form.get("restaurant_phone").strip()
+        restaurant.description = request.form.get("restaurant_description").strip()
+
+        db.session.commit()
+        flash("Perfil atualizado com sucesso!", "success")
+        return redirect(url_for('dashboard.profile'))
+
+    return render_template("dashboard/profile.html", user=user, restaurant=restaurant, active_page="profile")
+
