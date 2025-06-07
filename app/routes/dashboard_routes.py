@@ -44,25 +44,38 @@ def list_categories():
 @login_required
 def toggle_category(category_id):
     category = Category.query.get_or_404(category_id)
+
     if category.restaurant != current_user.restaurant:
         flash("Acesso negado.", "danger")
-        return redirect(url_for('category.list_categories'))
+        return redirect(url_for('dashboard.list_categories'))
+
     category.is_active = not category.is_active
+
+    for item in category.items:
+        item.is_active = category.is_active
+
     db.session.commit()
-    flash("Estado da categoria alterado.", "info")
+    flash("Estado da categoria e dos itens alterado.", "info")
     return redirect(url_for('dashboard.list_categories'))
 
 @bp.route("/categories/<int:category_id>/delete")
 @login_required
 def delete_category(category_id):
     category = Category.query.get_or_404(category_id)
+
     if category.restaurant != current_user.restaurant:
         flash("Acesso negado.", "danger")
-        return redirect(url_for('category.list_categories'))
+        return redirect(url_for('dashboard.list_categories'))
+
+    for item in category.items:
+        db.session.delete(item)
+
     db.session.delete(category)
     db.session.commit()
-    flash("Categoria removida com sucesso!", "warning")
+
+    flash("Categoria e seus itens foram removidos com sucesso!", "warning")
     return redirect(url_for('dashboard.list_categories'))
+
 
 @bp.route("/categories/<int:category_id>/edit", methods=["POST"])
 @login_required

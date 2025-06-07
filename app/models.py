@@ -31,10 +31,6 @@ class Restaurant(db.Model):
     subscription = db.relationship('Subscription', uselist=False, backref='restaurant', lazy=True)
     categories = db.relationship('Category', backref='restaurant', lazy=True)
 
-
-
-
-
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), unique=True)
