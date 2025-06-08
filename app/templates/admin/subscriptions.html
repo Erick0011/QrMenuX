@@ -61,12 +61,30 @@
         <h5 class="modal-title" id="modalExtensaoLabel"><i class="bi bi-clock-history me-2"></i>Extender Assinatura</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
+
       <div class="modal-body text-center">
         <p>Escolha o tempo que deseja adicionar à assinatura:</p>
-        <div class="d-grid gap-2">
+        <div class="d-grid gap-2 mb-3">
           <a id="btn7dias" class="btn btn-outline-success">+7 dias</a>
           <a id="btn1mes" class="btn btn-outline-success">+1 mês</a>
           <a id="btn3meses" class="btn btn-outline-success">+3 meses</a>
+        </div>
+
+        <hr>
+        <p class="fw-bold">Ou defina um tempo personalizado:</p>
+        <div class="row g-2 justify-content-center">
+          <div class="col-6">
+            <input type="number" min="1" id="customValueInput" class="form-control" placeholder="Quantidade">
+          </div>
+          <div class="col-4">
+            <select id="customUnitSelect" class="form-select">
+              <option value="days">Dias</option>
+              <option value="months">Meses</option>
+            </select>
+          </div>
+          <div class="col-12 mt-2">
+            <button id="btnCustomApply" class="btn btn-success w-100">Aplicar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -75,17 +93,29 @@
 
 <script>
   const modalExtensao = document.getElementById('modalExtensao');
+  let currentRestaurantId = null;
+
   modalExtensao.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
-    const restaurantId = button.getAttribute('data-restaurant');
+    currentRestaurantId = button.getAttribute('data-restaurant');
 
-    document.getElementById('btn7dias').href = `/admin/subscription/extend/${restaurantId}?days=7`;
-    document.getElementById('btn1mes').href = `/admin/subscription/extend/${restaurantId}?months=1`;
-    document.getElementById('btn3meses').href = `/admin/subscription/extend/${restaurantId}?months=3`;
+    document.getElementById('btn7dias').href = `/admin/subscription/extend/${currentRestaurantId}?days=7`;
+    document.getElementById('btn1mes').href = `/admin/subscription/extend/${currentRestaurantId}?months=1`;
+    document.getElementById('btn3meses').href = `/admin/subscription/extend/${currentRestaurantId}?months=3`;
   });
 
-  // Tooltip init
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-  const tooltipList = tooltipTriggerList.map(t => new bootstrap.Tooltip(t));
+  document.getElementById('btnCustomApply').addEventListener('click', function () {
+    const value = parseInt(document.getElementById('customValueInput').value);
+    const unit = document.getElementById('customUnitSelect').value;
+
+    if (!value || value <= 0) {
+      alert("Informe um valor válido.");
+      return;
+    }
+
+    const url = `/admin/subscription/extend/${currentRestaurantId}?${unit}=${value}`;
+    window.location.href = url;
+  });
+
 </script>
 {% endblock %}
