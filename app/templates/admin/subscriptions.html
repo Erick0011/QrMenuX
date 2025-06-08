@@ -79,9 +79,9 @@
     const button = event.relatedTarget;
     const restaurantId = button.getAttribute('data-restaurant');
 
-    document.getElementById('btn7dias').href = `/admin/extend_subscription/${restaurantId}?days=7`;
-    document.getElementById('btn1mes').href = `/admin/extend_subscription/${restaurantId}?months=1`;
-    document.getElementById('btn3meses').href = `/admin/extend_subscription/${restaurantId}?months=3`;
+    document.getElementById('btn7dias').href = `/admin/subscription/extend/${restaurantId}?days=7`;
+    document.getElementById('btn1mes').href = `/admin/subscription/extend/${restaurantId}?months=1`;
+    document.getElementById('btn3meses').href = `/admin/subscription/extend/${restaurantId}?months=3`;
   });
 
   // Tooltip init

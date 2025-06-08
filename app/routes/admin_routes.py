@@ -161,7 +161,7 @@ def users():
 
     return render_template('admin/users.html', users=users, search=search)
 
-@bp.route('/admin/subscriptions')
+@bp.route('/subscriptions')
 @login_required
 def subscriptions():
     restaurants = Restaurant.query.join(Subscription).order_by(Subscription.end_date.asc()).all()
