@@ -1,6 +1,24 @@
 {% extends "dashboard/dashboard_base.html" %}
 {% block title %}Pratos{% endblock %}
 
+{% block head %}
+<style>
+  .menu-card-img {
+    height: 200px;
+    width: 100%;
+    object-fit: contain; /* <-- ESSENCIAL para não cortar */
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    background-color: #f8f9fa; /* cor de fundo neutra se a imagem não preencher tudo */
+  }
+  .card-text.truncate {
+    max-height: 4.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3>Pratos</h3>
@@ -9,46 +27,45 @@
   </button>
 </div>
 
-<!-- Dropdown de Categorias -->
-<div class="mb-4">
-  <form method="GET" action="{{ url_for('dashboard.list_items') }}">
-    <label for="categorySelect" class="form-label">Selecione a Categoria:</label>
-    <div class="input-group">
-      <select class="form-select" id="categorySelect" name="category_id" onchange="this.form.submit()">
-        {% for category in categories %}
-          <option value="{{ category.id }}" {% if category.id == selected_category.id %}selected{% endif %}>
-            {{ category.name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-  </form>
+<!-- Botões de Categorias -->
+<div class="mb-4 d-flex flex-wrap gap-2">
+  {% for category in categories %}
+    <form method="GET" action="{{ url_for('dashboard.list_items') }}">
+      <input type="hidden" name="category_id" value="{{ category.id }}">
+      <button type="submit"
+              class="btn {% if category.id == selected_category.id %}btn-success{% else %}btn-outline-success{% endif %}">
+        {{ category.name }}
+      </button>
+    </form>
+  {% endfor %}
 </div>
+
 
 <!-- Listagem de Pratos -->
 <div class="row">
   {% for item in items %}
-    <div class="col-md-6 col-lg-4 mb-3">
+    <div class="col-md-6 col-lg-4 mb-4">
       <div class="card h-100 shadow-sm">
         {% if item.image_filename %}
-          <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" class="card-img-top" alt="{{ item.name }}">
+          <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}"
+               class="card-img-top menu-card-img" alt="{{ item.name }}">
         {% endif %}
-        <div class="card-body">
+        <div class="card-body d-flex flex-column">
           <h5 class="card-title">{{ item.name }}</h5>
-          <p class="card-text">{{ item.description }}</p>
-          <p class="card-text"><strong>Preço:</strong> Kz {{ item.price }}</p>
-          <span class="badge bg-{{ 'success' if item.is_active else 'secondary' }}">
+          <p class="card-text truncate">{{ item.description }}</p>
+          <p class="card-text mb-2"><strong>Preço:</strong> Kz {{ item.price }}</p>
+          <span class="badge bg-{{ 'success' if item.is_active else 'secondary' }} mb-3 align-self-start">
             {{ 'Ativo' if item.is_active else 'Inativo' }}
           </span>
-          <div class="mt-3 d-flex justify-content-between">
-            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+          <div class="mt-auto d-flex justify-content-between">
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
               data-bs-target="#editItemModal{{ item.id }}">Editar</button>
             <a href="{{ url_for('dashboard.toggle_item', item_id=item.id) }}"
-               class="btn btn-outline-secondary btn-sm">
+               class="btn btn-sm btn-outline-secondary">
               {{ 'Desativar' if item.is_active else 'Ativar' }}
             </a>
             <a href="{{ url_for('dashboard.delete_item', item_id=item.id) }}"
-               class="btn btn-outline-danger btn-sm"
+               class="btn btn-sm btn-outline-danger"
                onclick="return confirm('Deseja realmente excluir este prato?');">
               Excluir
             </a>
@@ -124,7 +141,7 @@
         </div>
         <div class="mb-3">
           <label for="itemImage" class="form-label">Imagem</label>
-          <input type="file" class="form-control" name="image" id="itemImage">
+          <input type="file" class="form-control" name="image" id="itemImage" required>
         </div>
         <input type="hidden" name="category_id" value="{{ selected_category.id }}">
       </div>
