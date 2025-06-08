@@ -127,22 +127,16 @@ def create_item():
 
     filename = None
     if image and name:
-        # Criar nome seguro para a imagem
         ext = os.path.splitext(image.filename)[1]
         safe_image_name = secure_filename(name.lower().replace(" ", "_")) + ext
 
-        # Pasta do restaurante dentro de /static/uploads/
         restaurant_slug = current_user.restaurant.slug
-        relative_folder = os.path.join("uploads", restaurant_slug)
-        absolute_folder = os.path.join(current_app.root_path, "static", relative_folder)
+        relative_path = os.path.join(restaurant_slug, safe_image_name).replace("\\", "/")
+        absolute_folder = os.path.join(current_app.root_path, "static", "uploads", restaurant_slug)
         os.makedirs(absolute_folder, exist_ok=True)
 
-        # Caminho final absoluto + salvar
-        image_path = os.path.join(absolute_folder, safe_image_name)
-        image.save(image_path)
-
-        # Caminho relativo para salvar no banco
-        filename = os.path.join(relative_folder, safe_image_name).replace("\\", "/")
+        image.save(os.path.join(absolute_folder, safe_image_name))
+        filename = relative_path
 
     new_item = MenuItem(
         name=name,
@@ -184,10 +178,10 @@ def edit_item(item_id):
     item.category = new_category
 
     if image and name:
-        ext = os.path.splitext(image.filename)[1]  # ex: .jpg, .png
+        ext = os.path.splitext(image.filename)[1]
         safe_name = secure_filename(name.lower().replace(" ", "_")) + ext
 
-        folder = os.path.join("static", "uploads", restaurant.slug)
+        folder = os.path.join(current_app.root_path, "static", "uploads", restaurant.slug)
         os.makedirs(folder, exist_ok=True)
 
         filepath = os.path.join(folder, safe_name)
