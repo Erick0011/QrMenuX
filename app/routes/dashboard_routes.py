@@ -77,6 +77,10 @@ def delete_category(category_id):
         return redirect(url_for('dashboard.list_categories'))
 
     for item in category.items:
+        if item.image_filename:
+            image_path = os.path.join(current_app.root_path, 'static/uploads', item.image_filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
         db.session.delete(item)
 
     db.session.delete(category)
@@ -84,7 +88,6 @@ def delete_category(category_id):
 
     flash("Categoria e seus itens foram removidos com sucesso!", "warning")
     return redirect(url_for('dashboard.list_categories'))
-
 
 @bp.route("/categories/<int:category_id>/edit", methods=["POST"])
 @login_required
@@ -217,9 +220,16 @@ def toggle_item(item_id):
 @login_required
 def delete_item(item_id):
     item = MenuItem.query.get_or_404(item_id)
+
     if item.category.restaurant != current_user.restaurant:
         flash("Acesso negado.", "danger")
         return redirect(url_for('dashboard.list_items'))
+
+
+    if item.image_filename:
+        image_path = os.path.join(current_app.root_path, 'static/uploads', item.image_filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
 
     db.session.delete(item)
     db.session.commit()
