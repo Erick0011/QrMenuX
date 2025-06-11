@@ -29,10 +29,10 @@ def subscription():
     expired = not sub or sub.has_expired()
 
     return render_template("dashboard/subscription.html",
-                           subscription=sub,
-                           days_left=days_left,
-                           expired=expired,
-                           active_page="subscription")
+                        subscription=sub,
+                        days_left=days_left,
+                        expired=expired,
+                        active_page="subscription")
 
 
 @bp.route("/categories", methods=["GET", "POST"])
