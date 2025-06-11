@@ -1,0 +1,32 @@
+{% extends "dashboard/dashboard_base.html" %} {% block title %}Horário de
+Funcionamento{% endblock%} {% block content %}
+<div class="mx-auto" style="max-width: 600px">
+  <h3>Horário de Funcionamento</h3>
+  <form method="POST" action="{{ url_for('dashboard.operating_hours') }}">
+    {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+    "Saturday", "Sunday"] %}
+    <div class="form-group">
+      <label>{{ day }}</label>
+      <div class="d-flex">
+        <input
+          type="time"
+          name="open_time_{{ day }}"
+          class="form-control me-2"
+          required
+        />
+        <input
+          type="time"
+          name="close_time_{{ day }}"
+          class="form-control"
+          required
+        />
+      </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary mt-3">
+      Salvar Horário de Funcionamento
+    </button>
+  </form>
+</div>
+
+{% endblock %}

@@ -12,10 +12,10 @@ def menu(slug):
     categories = Category.query.filter_by(
         restaurant_id=restaurant.id, is_active=True
     ).all()
-    theme = "#1700e6b0"  # suposição de novo campo no model
+
     return render_template(
         "public/menu.html",
         restaurant=restaurant,
         categories=categories,
-        theme_color=theme,
+        theme_color=restaurant.theme_color,
     )

@@ -1,43 +1,91 @@
-{% extends "dashboard/dashboard_base.html" %}
-{% block title %}Perfil{% endblock %}
-{% block content %}
-<div class="mx-auto" style="max-width:600px;">
+{% extends "dashboard/dashboard_base.html" %} {% block title %}Perfil{% endblock
+%} {% block content %}
+<div class="mx-auto" style="max-width: 600px">
   <h3>Editar Perfil</h3>
   <form method="POST">
-    <hr>
+    <hr />
     <h5 class="text-success">Dados do Usuário</h5>
     <div class="mb-3">
       <label>Email de login</label>
-      <input type="email" name="user_email" class="form-control" value="{{ user.email }}" required>
+      <input
+        type="email"
+        name="user_email"
+        class="form-control"
+        value="{{ user.email }}"
+        required
+      />
     </div>
     <div class="mb-3">
       <label>Nova senha (deixe em branco para manter)</label>
-      <input type="password" name="user_password" class="form-control">
+      <input type="password" name="user_password" class="form-control" />
     </div>
 
-    <hr>
+    <hr />
     <h5 class="text-success">Dados do Restaurante</h5>
     <div class="mb-3">
       <label>Nome do restaurante</label>
-      <input type="text" class="form-control" value="{{ restaurant.name }}" disabled>
+      <input
+        type="text"
+        class="form-control"
+        value="{{ restaurant.name }}"
+        disabled
+      />
     </div>
     <div class="mb-3">
       <label>Slug</label>
-      <input type="text" class="form-control" value="{{ restaurant.slug }}" disabled>
+      <input
+        type="text"
+        class="form-control"
+        value="{{ restaurant.slug }}"
+        disabled
+      />
     </div>
     <div class="mb-3">
       <label>Email de contacto</label>
-      <input type="email" name="restaurant_email" class="form-control" value="{{ restaurant.email }}">
+      <input
+        type="email"
+        name="restaurant_email"
+        class="form-control"
+        value="{{ restaurant.email }}"
+      />
     </div>
     <div class="mb-3">
       <label>Telefone / WhatsApp</label>
-      <input type="text" name="restaurant_phone" class="form-control" value="{{ restaurant.phone }}">
+      <input
+        type="text"
+        name="restaurant_phone"
+        class="form-control"
+        value="{{ restaurant.phone }}"
+      />
+    </div>
+    <div class="mb-3">
+      <label>Endereço</label>
+      <input
+        type="text"
+        name="restaurant_address"
+        class="form-control"
+        value="{{ restaurant.address }}"
+      />
+    </div>
+    <div class="mb-3">
+      <label>Cor do tema</label>
+      <input
+        type="color"
+        name="theme_color"
+        class="form-control form-control-color"
+        value="{{ restaurant.theme_color }}"
+      />
     </div>
     <div class="mb-3">
       <label>Descrição</label>
-      <textarea name="restaurant_description" class="form-control" rows="3">{{ restaurant.description }}</textarea>
+      <textarea name="restaurant_description" class="form-control" rows="3">
+{{ restaurant.description }}</textarea
+      >
     </div>
-    <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Salvar alterações</button>
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check-circle"></i> Salvar alterações
+    </button>
   </form>
 </div>
+
 {% endblock %}
