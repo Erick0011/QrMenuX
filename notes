@@ -1,242 +1,132 @@
-da vida a esse template { {% block title %}{{ restaurant.name }} - Cardápio {% endblock %}
 
-{% block content %}
-<!-- Start Food Menu
-    ============================================= -->
-    <div class="food-menu-area inc-isotop default-padding">
-        <div class="container">
-            <div class="food-menu-area text-center">
-                <div class="row">
-                    <div class="col-md-12 food-menu-content">
-                        <div class="mix-item-menu text-center">
-                            <button class="active" data-filter="*">All</button>
-                            <button data-filter=".pancakes">Pancakes</button>
-                            <button data-filter=".sandwiches">Sandwiches</button>
-                            <button data-filter=".brunch">Brunch</button>
-                            <button data-filter=".vegetarian">Vegetarian</button>
-                            <button data-filter=".meat">Meat</button>
-                        </div>
-                        <!-- End Mixitup Nav-->
-
-                        <div class="row text-center masonary">
-                            <div id="portfolio-grid" class="menu-lists text-center col-3">
-                                <!-- Single Item -->
-                                <div class="item-single pf-item pancakes meat">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$5.90</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Crispy Crust Pizzeria</a></h4>
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="item-single pf-item sandwiches vegetarian">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$18.10</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Luger Burger</a></h4>
-
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="item-single pf-item sandwiches brunch">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$6.00</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Fries McDonald's</a></h4>
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="item-single pf-item brunch">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$11.50</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Chicken Popeyes</a></h4>
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="item-single pf-item meat pancakes">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$25.00</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Chicken Sandwich</a></h4>
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="item-single pf-item sandwiches vegetarian">
-                                    <div class="item">
-                                        <div class="thumb">
-                                            <a href="#">
-                                                <img src="assets/img/800x600.png" alt="Thumb">
-                                            </a>
-                                            <div class="price">
-                                                <h5>$9.10</h5>
-                                            </div>
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="#">Salmon Steak</a></h4>
-                                            <p>
-                                                Considered introduced themselves mr to discretion at. Means among saw
-                                                hopes for. Death mirth in oh learn he equal on.
-                                            </p>
-                                            <div class="button">
-                                                <a href="#">Order Now</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Single Item -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Food Menu -->
-{% endblock %}}
-
-aqui a rota
-
-{@bp.route('/<slug>')
-def menu(slug):
-    restaurant = Restaurant.query.filter_by(slug=slug, is_active=True).first_or_404()
-    categories = Category.query.filter_by(restaurant_id=restaurant.id, is_active=True).all()
-    return render_template('public/menu.html', restaurant=restaurant, categories=categories)
-} e os models usados
 {
-from flask_login import UserMixin
-from . import db, login_manager
-from app.utils.now_angola import now_angola
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta
-import pytz
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(200))
-    role = db.Column(db.String(20), default='restaurant')  # 'admin' ou 'restaurant'
-    restaurant = db.relationship('Restaurant', backref='owner', lazy=True, uselist=False)
-
-
-class Restaurant(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    name = db.Column(db.String(150), nullable=False)
-    slug = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(50))
-    description = db.Column(db.Text)
-    is_active = db.Column(db.Boolean, default=True)
-
-    subscription = db.relationship('Subscription', uselist=False, backref='restaurant', lazy=True)
-    categories = db.relationship('Category', backref='restaurant', lazy=True)
-
-class Category(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
-    items = db.relationship('MenuItem', backref='category', lazy=True)
-
-
-
-class MenuItem(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    image_filename = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    ingredients = db.Column(db.Text)
-    is_active = db.Column(db.Boolean, default=True)
-
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-
-
-
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "[sass]": {
+    "editor.defaultFormatter": "syler.sass-indented"
+  },
+  "workbench.editorAssociations": {
+    "*.db": "default"
+  },
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.tsx": "${capture}.ts",
+    "tsconfig.json": "tsconfig.*.json",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb",
+    "*.sqlite": "${capture}.${extname}-*",
+    "*.db": "${capture}.${extname}-*",
+    "*.sqlite3": "${capture}.${extname}-*",
+    "*.db3": "${capture}.${extname}-*",
+    "*.sdb": "${capture}.${extname}-*",
+    "*.s3db": "${capture}.${extname}-*"
+  },
+  "files.associations": {
+    "*.html": "jinja-html"
+  },
+  "emmet.includeLanguages": {
+    "jinja-html": "html"
+  },
+  "files.associations": {
+    "*.py": "python"
+  },
+  "workbench.colorTheme": "Material Theme Darker",
+  "breadcrumbs.enabled": false,
+  "editor.stickyScroll.enabled": false,
+  "powermode.enabled": false,
+  "git.autofetch": true,
+  "editor.defaultFormatter": "jinxdash.prettier-rust",
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[django-html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
+
+=======================
+
+{
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+  
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jinja-html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[scss]": {
+      "editor.defaultFormatter": "vscode.css-language-features"
+    },
+    "[sass]": {
+      "editor.defaultFormatter": "syler.sass-indented"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+  
+    "emmet.includeLanguages": {
+      "jinja-html": "html"
+    },
+  
+    "files.associations": {
+      "*.html": "jinja-html",
+      "*.py": "python"
+    },
+  
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": [
+      "--line-length=88"
+    ],
+  
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.colorTheme": "Black Ocean",
+    "breadcrumbs.enabled": false,
+    "editor.stickyScroll.enabled": false,
+    "powermode.enabled": false,
+    "git.autofetch": true,
+  
+    "workbench.editorAssociations": {
+      "*.db": "default"
+    },
+  
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js",
+      "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+      "*.jsx": "${capture}.js",
+      "*.tsx": "${capture}.ts",
+      "tsconfig.json": "tsconfig.*.json",
+      "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb",
+      "*.sqlite": "${capture}.${extname}-*",
+      "*.db": "${capture}.${extname}-*",
+      "*.sqlite3": "${capture}.${extname}-*",
+      "*.db3": "${capture}.${extname}-*",
+      "*.sdb": "${capture}.${extname}-*",
+      "*.s3db": "${capture}.${extname}-*"
+    }
+  }
+  

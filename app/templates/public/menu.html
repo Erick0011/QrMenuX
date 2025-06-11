@@ -8,6 +8,11 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
     <style>
       :root {
         --theme-color: {{theme_color}};
@@ -106,10 +111,81 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="text-center py-4 mt-auto">
-      <small
-        >© {{ restaurant.name }} 2025 - Todos os direitos reservados.</small
-      >
+    <footer
+      class="mt-auto text-white"
+      style="background-color: var(--theme-color)"
+    >
+      <div class="container py-4">
+        <div class="row text-center text-md-start align-items-center gy-4">
+          <!-- Info do restaurante -->
+          <div class="col-md-4">
+            <h5 class="fw-bold">{{ restaurant.name }}</h5>
+            <p class="mb-1">
+              <i class="bi bi-geo-alt-fill"></i> {{ restaurant.address or
+              'Endereço não disponível' }}
+            </p>
+            <p class="mb-1">
+              <i class="bi bi-telephone-fill"></i> {{ restaurant.phone or '999
+              999 999' }}
+            </p>
+            <p class="mb-1">
+              <i class="bi bi-envelope-fill"></i> {{ restaurant.email or
+              'contato@exemplo.com' }}
+            </p>
+          </div>
+
+          <!-- Captura de leads -->
+          <div class="col-md-4">
+            <h6 class="fw-bold">Receba novidades!</h6>
+            <form>
+              <div class="input-group">
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="Seu e-mail"
+                  required
+                />
+                <button class="btn btn-light" type="submit">Cadastrar</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Publicidade QRmenuX -->
+          <div class="col-md-4">
+            <h6 class="fw-bold">Feito com ❤️ por NextKode</h6>
+            <p class="mb-2">
+              Este restaurante usa o <strong>QRmenuX</strong>, sistema moderno
+              de cardápio digital.
+            </p>
+            <p class="mb-2">
+              Quer usar em seu restaurante ou conhecer outros produtos?
+            </p>
+            <div
+              class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-md-start"
+            >
+              <a
+                href="mailto:nextkode.contacto@gmail.com"
+                class="btn btn-sm btn-light"
+              >
+                <i class="bi bi-envelope-fill"></i> E-mail
+              </a>
+              <a
+                href="https://wa.me/244999999999"
+                class="btn btn-sm btn-light"
+                target="_blank"
+              >
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4 border-light" />
+
+        <div class="text-center small">
+          © {{ restaurant.name }} 2025 – Todos os direitos reservados.
+        </div>
+      </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
