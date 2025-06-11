@@ -7,10 +7,12 @@ from slugify import slugify
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+
 @bp.route("/")
 @login_required
 def dashboard():
     return render_template("admin/dashboard.html", current_user=current_user)
+
 
 @bp.route("/create_user", methods=['POST'])
 @login_required
@@ -61,6 +63,7 @@ def create_user():
         flash(f'Erro ao criar usuário: {e}', 'danger')
 
     return redirect(url_for('admin.users'))
+
 
 @bp.route('/admin/update_user/<int:user_id>', methods=['POST'])
 @login_required
@@ -161,10 +164,12 @@ def users():
 
     return render_template('admin/users.html', users=users, search=search)
 
+
 @bp.route('/subscriptions')
 @login_required
 def subscriptions():
-    restaurants = Restaurant.query.join(Subscription).order_by(Subscription.end_date.asc()).all()
+    restaurants = Restaurant.query.join(Subscription).order_by(
+        Subscription.end_date.asc()).all()
     return render_template('admin/subscriptions.html', restaurants=restaurants)
 
 
@@ -187,6 +192,8 @@ def send_reminder(restaurant_id):
     sub = restaurant.subscription
     if sub:
         dias = sub.days_remaining()
-        print(f"[MOCK EMAIL] Restaurante {restaurant.name} - {dias} dias restantes.")
-        print(f"[MOCK WHATSAPP] Número {restaurant.phone} - expira em {dias} dias.")
+        print(
+            f"[MOCK EMAIL] Restaurante {restaurant.name} - {dias} dias restantes.")
+        print(
+            f"[MOCK WHATSAPP] Número {restaurant.phone} - expira em {dias} dias.")
     return redirect(url_for('admin.subscriptions'))
