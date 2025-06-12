@@ -62,7 +62,7 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('dashboard.qrcode_page') }}">
-                <i class="bi bi-qr-code"></i> Meu QR Code
+                <i class="bi bi-qr-code"></i>QR Code
               </a>
             </li>
 
@@ -77,7 +77,13 @@
 
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('dashboard.list_items') }}">
-                <i class="bi bi-list-ul me-1"></i> Pratos / Cardápio
+                <i class="bi bi-list-ul me-1"></i> items
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('dashboard.list_tables') }}">
+                <i class="bi bi-table me-1"></i> Mesas
               </a>
             </li>
 

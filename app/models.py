@@ -140,27 +140,22 @@ class OperatingHour(db.Model):
         return value
 
 
-"""
-class Reserva(db.Model):
+class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nome_cliente = db.Column(db.String(100))
-    data = db.Column(db.Date)
-    hora_entrada = db.Column(db.Time)
-    hora_saida = db.Column(db.Time)
-    pessoas = db.Column(db.Integer)
-    observacoes = db.Column(db.Text)
-    mesa_id = db.Column(db.Integer, db.ForeignKey("mesa.id"))
-    mesa = db.relationship("Mesa", backref="reservas")
-    status = db.Column(db.String(20), default="pendente")  # aprovado, recusado, etc.
 
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_phone = db.Column(db.String(20), nullable=False)
 
-class TableReservation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    table_id = db.Column(db.Integer, db.ForeignKey("table.id"))
-    customer_name = db.Column(db.String(100))
-    customer_phone = db.Column(db.String(20))
-    start_time = db.Column(db.DateTime)
-    end_time = db.Column(db.DateTime)
-    status = db.Column(db.String(20), default="pendente")  # aprovado, cancelado, etc.
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-"""
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+
+    people = db.Column(db.Integer, nullable=False)
+    observations = db.Column(db.Text)
+
+    table_id = db.Column(db.Integer, db.ForeignKey("table.id"), nullable=False)
+    table = db.relationship("Table", backref="reservations")
+
+    status = db.Column(
+        db.String(20), default="pendente"
+    )  # pendente, aprovado, recusado, cancelado...
+    created_at = db.Column(db.DateTime, default=lambda: now_angola())

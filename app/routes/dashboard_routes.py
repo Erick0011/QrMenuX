@@ -2,13 +2,13 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
-from app.models import db, Category, MenuItem, OperatingHour, Table
+from app.models import db, Category, MenuItem, OperatingHour, Table, Reservation
 from flask import current_app
 import qrcode
 import io
 import base64
 from flask import send_file
-from datetime import time
+from datetime import time, datetime
 from sqlalchemy import delete
 
 
@@ -425,3 +425,61 @@ def delete_table(table_id):
     db.session.commit()
     flash("Table deleted successfully.", "success")
     return redirect(url_for("dashboard.list_tables"))
+
+
+@bp.route("/reservations", methods=["GET", "POST"])
+@login_required
+def reservations():
+    restaurant = current_user.restaurant
+    tables = Table.query.filter_by(restaurant_id=restaurant.id).all()
+    hours = (
+        OperatingHour.query.filter_by(restaurant_id=restaurant.id)
+        .order_by(OperatingHour.id)
+        .all()
+    )
+    if request.method == "POST":
+        table_id = int(request.form["table_id"])
+        name = request.form["customer_name"].strip()
+        phone = request.form["customer_phone"].strip()
+        start = datetime.fromisoformat(request.form["start_time"])
+        end = datetime.fromisoformat(request.form["end_time"])
+        people = int(request.form["people"])
+        obs = request.form.get("observations")
+
+        # Verifica disponibilidade da mesa
+        conflict = Reservation.query.filter(
+            Reservation.table_id == table_id,
+            Reservation.start_time < end,
+            Reservation.end_time > start,
+        ).first()
+        if conflict:
+            flash("Horário indisponível para essa mesa!", "danger")
+        else:
+            res = Reservation(
+                customer_name=name,
+                customer_phone=phone,
+                start_time=start,
+                end_time=end,
+                people=people,
+                observations=obs,
+                table_id=table_id,
+                status="pendente",
+            )
+            db.session.add(res)
+            db.session.commit()
+            flash("Reserva criada com sucesso!", "success")
+        return redirect(url_for("dashboard.reservations"))
+
+    reservations = (
+        Reservation.query.filter_by(table_id=Table.id)
+        .join(Table)
+        .filter(Table.restaurant_id == restaurant.id)
+        .order_by(Reservation.start_time)
+        .all()
+    )
+    return render_template(
+        "dashboard/reservations.html",
+        tables=tables,
+        hours=hours,
+        reservations=reservations,
+    )
