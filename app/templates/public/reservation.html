@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reserva - {{ restaurant.name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2rem;
+        background: #f7f7f7;
+        color: #333;
+      }
+      h2 {
+        color: {{ theme_color }};
+      }
+      label {
+        font-weight: bold;
+      }
+      .slot-btn, .table-btn {
+        margin: 5px;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .available {
+        background-color: {{ theme_color }};
+        color: white;
+      }
+      .taken {
+        background-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+      }
+      .active {
+        outline: 2px solid black;
+      }
+      input, textarea {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button[type="submit"] {
+        background-color: {{ theme_color }};
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    {% include "modal.html" %}
+    <h2>Fazer uma Reserva no {{ restaurant.name }}</h2>
+
+    <form method="POST" action="">
+      <label for="datePicker">Data</label>
+      <input
+        type="text"
+        id="datePicker"
+        placeholder="Selecione a data"
+        required
+      />
+
+      <label>Mesas Disponíveis</label>
+      <div
+        id="tables"
+        style="display: flex; flex-wrap: wrap; margin-bottom: 1rem"
+      ></div>
+      <input type="hidden" name="table_id" id="table_id" />
+
+      <label>Horários Disponíveis</label>
+      <div id="slots" style="display: flex; flex-wrap: wrap"></div>
+      <input type="hidden" name="start_time" id="start_time" />
+      <input type="hidden" name="end_time" id="end_time" />
+
+      <label for="customer_name">Nome</label>
+      <input type="text" name="customer_name" required />
+
+      <label for="customer_phone">Telefone</label>
+      <input type="text" name="customer_phone" required />
+
+      <label for="people">Número de Pessoas</label>
+      <input type="number" name="people" min="1" required />
+
+      <label for="observations">Observações</label>
+      <textarea name="observations"></textarea>
+
+      <button type="submit">Reservar</button>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+      const hours = {{ hours|tojson }};
+      const reservations = {{ reservations|tojson }};
+      const tables = {{ tables|tojson }};
+      const slotsDiv = document.getElementById('slots');
+      const tablesDiv = document.getElementById('tables');
+
+      let selectedDate = null;
+      let selectedTableId = null;
+
+      flatpickr("#datePicker", {
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        onChange: ([date]) => {
+          selectedDate = date;
+          renderTables();
+          slotsDiv.innerHTML = ''; // limpar horários
+          document.getElementById('table_id').value = '';
+        }
+      });
+
+      function renderTables() {
+        tablesDiv.innerHTML = '';
+
+        tables.forEach(table => {
+          const hasConflict = reservations.some(r =>
+            r.table_id === table.id &&
+            new Date(r.start_time).toDateString() === selectedDate.toDateString()
+          );
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'table-btn';
+          btn.textContent = `${table.name} (${table.capacity}p)`;
+          btn.disabled = hasConflict;
+          btn.classList.add(hasConflict ? 'taken' : 'available');
+
+          if (!hasConflict) {
+            btn.onclick = () => {
+              document.querySelectorAll('.table-btn.available').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              selectedTableId = table.id;
+              document.getElementById('table_id').value = table.id;
+              renderSlots();
+            };
+          }
+
+          tablesDiv.appendChild(btn);
+        });
+      }
+
+      function renderSlots() {
+        slotsDiv.innerHTML = '';
+        const day = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+        const op = hours.find(h => h.day === day);
+        if (!op) return;
+
+        const [oh, om] = op.open_time.split(':').map(Number);
+        const [ch, cm] = op.close_time.split(':').map(Number);
+
+        let cur = new Date(selectedDate);
+        cur.setHours(oh, om, 0, 0);
+        const close = new Date(selectedDate);
+        close.setHours(ch, cm, 0, 0);
+
+        while (cur < close) {
+          const next = new Date(cur.getTime() + 30 * 60000);
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'slot-btn';
+          btn.textContent = `${cur.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${next.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+
+          const hasConflict = reservations.some(r => {
+            return r.table_id === selectedTableId &&
+              new Date(r.start_time) < next &&
+              new Date(r.end_time) > cur;
+          });
+
+          btn.classList.add(hasConflict ? 'taken' : 'available');
+          btn.disabled = hasConflict;
+
+          if (!hasConflict) {
+            btn.onclick = () => {
+              document.querySelectorAll('.slot-btn.available').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              document.getElementById('start_time').value = cur.toISOString();
+              document.getElementById('end_time').value = next.toISOString();
+            };
+          }
+
+          slotsDiv.appendChild(btn);
+          cur = next;
+        }
+      }
+    </script>
+  </body>
+</html>

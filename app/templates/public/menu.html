@@ -47,7 +47,7 @@
         <a class="navbar-brand text-white" href="#">{{ restaurant.name }}</a>
         <button
           class="btn btn-outline-light"
-          onclick="location.href='{{ url_for('public.menu', slug=restaurant.slug) }}/reserva'"
+          onclick="location.href='{{ url_for('public.menu', slug=restaurant.slug) }}/reservation'"
         >
           <i class="bi bi-calendar-check"></i> Reservar
         </button>
