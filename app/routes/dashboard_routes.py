@@ -524,6 +524,7 @@ def reservations():
                 observations=obs,
                 table_id=table_id,
                 status="pendente",
+                restaurant_id=restaurant.id,
             )
             db.session.add(res)
             db.session.commit()

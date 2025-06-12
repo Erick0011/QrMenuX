@@ -161,3 +161,4 @@ class Reservation(db.Model):
         db.String(20), default="pendente"
     )  # pendente, aprovado, recusado, cancelado...
     created_at = db.Column(db.DateTime, default=lambda: now_angola())
+    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurant.id"))

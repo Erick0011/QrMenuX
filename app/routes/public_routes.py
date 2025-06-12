@@ -124,6 +124,7 @@ def reservation(slug):
                 observations=obs,
                 table_id=table_id,
                 status="pendente",
+                restaurant_id=restaurant.id,
             )
             db.session.add(res)
             db.session.commit()
@@ -145,12 +146,10 @@ def reservation(slug):
     table_list = [{"id": t.id, "name": t.name, "capacity": t.capacity} for t in tables]
 
     reservations = (
-        Reservation.query.join(Table)
-        .filter(Table.restaurant_id == restaurant.id)
+        Reservation.query.filter_by(restaurant_id=restaurant.id)
         .with_entities(Reservation.start_time, Reservation.end_time)
         .all()
     )
-
     reservations_data = [
         {
             "start_time": r[0].strftime("%Y-%m-%dT%H:%M"),

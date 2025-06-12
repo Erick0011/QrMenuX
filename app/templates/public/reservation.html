@@ -39,6 +39,7 @@
       }
       .active {
         outline: 2px solid black;
+        background-color: #222 !important;
       }
       input, textarea {
         width: 100%;
@@ -107,6 +108,7 @@
 
       let selectedDate = null;
       let selectedTableId = null;
+      let selectedSlots = [];
 
       flatpickr("#datePicker", {
         minDate: "today",
@@ -114,43 +116,36 @@
         onChange: ([date]) => {
           selectedDate = date;
           renderTables();
-          slotsDiv.innerHTML = ''; // limpar horários
+          slotsDiv.innerHTML = '';
           document.getElementById('table_id').value = '';
         }
       });
 
       function renderTables() {
         tablesDiv.innerHTML = '';
-
         tables.forEach(table => {
-          const hasConflict = reservations.some(r =>
-            r.table_id === table.id &&
-            new Date(r.start_time).toDateString() === selectedDate.toDateString()
-          );
-
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'table-btn';
+          btn.className = 'table-btn available';
           btn.textContent = `${table.name} (${table.capacity}p)`;
-          btn.disabled = hasConflict;
-          btn.classList.add(hasConflict ? 'taken' : 'available');
 
-          if (!hasConflict) {
-            btn.onclick = () => {
-              document.querySelectorAll('.table-btn.available').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-              selectedTableId = table.id;
-              document.getElementById('table_id').value = table.id;
-              renderSlots();
-            };
-          }
+          btn.onclick = () => {
+            document.querySelectorAll('.table-btn.available').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedTableId = table.id;
+            document.getElementById('table_id').value = table.id;
+            renderSlots();
+          };
 
           tablesDiv.appendChild(btn);
         });
       }
 
       function renderSlots() {
+        if (!selectedDate || !selectedTableId) return;
         slotsDiv.innerHTML = '';
+        selectedSlots = [];
+
         const day = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
         const op = hours.find(h => h.day === day);
         if (!op) return;
@@ -163,34 +158,70 @@
         const close = new Date(selectedDate);
         close.setHours(ch, cm, 0, 0);
 
+        const slotMap = [];
+
         while (cur < close) {
           const next = new Date(cur.getTime() + 30 * 60000);
-
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'slot-btn';
-          btn.textContent = `${cur.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${next.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+          btn.textContent = `${cur.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-          const hasConflict = reservations.some(r => {
-            return r.table_id === selectedTableId &&
-              new Date(r.start_time) < next &&
-              new Date(r.end_time) > cur;
-          });
+          const thisStart = new Date(cur);
+          const thisEnd = new Date(next);
 
-          btn.classList.add(hasConflict ? 'taken' : 'available');
+          const hasConflict = reservations.some(r =>
+            r.table_id === selectedTableId &&
+            new Date(r.start_time) < thisEnd &&
+            new Date(r.end_time) > thisStart
+          );
+
           btn.disabled = hasConflict;
+          btn.classList.add(hasConflict ? 'taken' : 'available');
 
           if (!hasConflict) {
-            btn.onclick = () => {
-              document.querySelectorAll('.slot-btn.available').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-              document.getElementById('start_time').value = cur.toISOString();
-              document.getElementById('end_time').value = next.toISOString();
-            };
+            btn.onclick = () => toggleSlot(thisStart, thisEnd, btn);
           }
 
+          slotMap.push({ start: thisStart, end: thisEnd, btn });
           slotsDiv.appendChild(btn);
           cur = next;
+        }
+
+        function toggleSlot(start, end, btn) {
+          const index = selectedSlots.findIndex(s => s.start.getTime() === start.getTime());
+          if (index !== -1) {
+            selectedSlots.splice(index, 1);
+            btn.classList.remove('active');
+          } else {
+            if (selectedSlots.length >= 6) return; // Limita a 6 blocos
+            selectedSlots.push({ start, end, btn });
+            btn.classList.add('active');
+          }
+
+          // Ordena slots por início
+          selectedSlots.sort((a, b) => a.start - b.start);
+
+          // Verifica se são consecutivos
+          for (let i = 1; i < selectedSlots.length; i++) {
+            const diff = (selectedSlots[i].start - selectedSlots[i - 1].end) / 60000;
+            if (diff !== 0) {
+              // Se não forem blocos seguidos, limpa tudo
+              selectedSlots.forEach(s => s.btn.classList.remove('active'));
+              selectedSlots = [];
+              document.getElementById('start_time').value = '';
+              document.getElementById('end_time').value = '';
+              return;
+            }
+          }
+
+          if (selectedSlots.length > 0) {
+            document.getElementById('start_time').value = selectedSlots[0].start.toISOString();
+            document.getElementById('end_time').value = selectedSlots[selectedSlots.length - 1].end.toISOString();
+          } else {
+            document.getElementById('start_time').value = '';
+            document.getElementById('end_time').value = '';
+          }
         }
       }
     </script>
