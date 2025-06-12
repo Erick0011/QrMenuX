@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
-from app.models import db, Category, MenuItem, OperatingHour
+from app.models import db, Category, MenuItem, OperatingHour, Table
 from flask import current_app
 import qrcode
 import io
@@ -362,3 +362,66 @@ def operating_hours():
     return render_template(
         "dashboard/operating_hours.html", hours=hours, active_page="operating_hours"
     )
+
+
+@bp.route("/tables", methods=["GET", "POST"])
+@login_required
+def list_tables():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        capacity = request.form.get("capacity", "").strip()
+
+        if not name or not capacity.isdigit():
+            flash("Invalid table name or capacity.", "danger")
+            return redirect(url_for("dashboard.list_tables"))
+
+        new_table = Table(
+            name=name,
+            capacity=int(capacity),
+            restaurant_id=current_user.restaurant.id,  # ou outro ID se for estático
+        )
+        db.session.add(new_table)
+        db.session.commit()
+        flash("Table created successfully.", "success")
+        return redirect(url_for("dashboard.list_tables"))
+
+    tables = Table.query.filter_by(restaurant_id=current_user.restaurant.id).all()
+    return render_template("dashboard/tables.html", tables=tables)
+
+
+@bp.route("/table/<int:table_id>/edit", methods=["POST"])
+@login_required
+def edit_table(table_id):
+    table = Table.query.get_or_404(table_id)
+
+    if table.restaurant_id != current_user.restaurant.id:
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("dashboard.list_tables"))
+
+    name = request.form.get("name", "").strip()
+    capacity = request.form.get("capacity", "").strip()
+
+    if not name or not capacity.isdigit():
+        flash("Invalid data.", "danger")
+        return redirect(url_for("dashboard.list_tables"))
+
+    table.name = name
+    table.capacity = int(capacity)
+    db.session.commit()
+    flash("Table updated successfully.", "success")
+    return redirect(url_for("dashboard.list_tables"))
+
+
+@bp.route("/table/<int:table_id>/delete")
+@login_required
+def delete_table(table_id):
+    table = Table.query.get_or_404(table_id)
+
+    if table.restaurant_id != current_user.restaurant.id:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("dashboard.list_tables"))
+
+    db.session.delete(table)
+    db.session.commit()
+    flash("Table deleted successfully.", "success")
+    return redirect(url_for("dashboard.list_tables"))
