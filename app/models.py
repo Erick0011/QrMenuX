@@ -4,6 +4,7 @@ from app.utils.now_angola import now_angola
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.orm import validates
+from app.utils.generate_code import generate_code
 import pytz
 
 
@@ -142,6 +143,7 @@ class OperatingHour(db.Model):
 
 class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    unique_code = db.Column(db.String(36), unique=True, default=generate_code)
 
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
