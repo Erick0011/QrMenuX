@@ -1,24 +1,29 @@
 {% extends "dashboard/dashboard_base.html" %} {% block title %}Horário de
 Funcionamento{% endblock%} {% block content %}
 <div class="mx-auto" style="max-width: 600px">
+  {% set dias_semana = { "Monday": "Segunda-feira", "Tuesday": "Terça-feira",
+  "Wednesday": "Quarta-feira", "Thursday": "Quinta-feira", "Friday":
+  "Sexta-feira", "Saturday": "Sábado", "Sunday": "Domingo" } %}
+
   <h3>Horário de Funcionamento</h3>
   <form method="POST" action="{{ url_for('dashboard.operating_hours') }}">
     {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
-    "Saturday", "Sunday"] %}
-    <div class="form-group">
-      <label>{{ day }}</label>
+    "Saturday", "Sunday"] %} {% set hour = hours|selectattr("day_of_week",
+    "equalto", day)|first %}
+    <div class="form-group mb-2">
+      <label>{{ dias_semana[day] }}</label>
       <div class="d-flex">
         <input
           type="time"
           name="open_time_{{ day }}"
           class="form-control me-2"
-          required
+          value="{{ hour.open_time.strftime('%H:%M') if hour else '00:00' }}"
         />
         <input
           type="time"
           name="close_time_{{ day }}"
           class="form-control"
-          required
+          value="{{ hour.close_time.strftime('%H:%M') if hour else '00:00' }}"
         />
       </div>
     </div>
@@ -28,5 +33,38 @@ Funcionamento{% endblock%} {% block content %}
     </button>
   </form>
 </div>
-
+<div class="mx-auto" style="max-width: 600px">
+  <hr class="my-4" />
+  <h4>Horários Atuais</h4>
+  <table class="table table-bordered mt-3">
+    <thead>
+      <tr>
+        <th>Dia</th>
+        <th>Abertura</th>
+        <th>Fechamento</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+      "Saturday", "Sunday"] %} {% set hour = hours|selectattr("day_of_week",
+      "equalto", day)|first %}
+      <tr>
+        <td>{{ dias_semana[day] }}</td>
+        {% if hour %} {% if hour.open_time == hour.close_time %}
+        <td colspan="2" class="text-center">Fechado</td>
+        <td><span class="badge bg-secondary">Fechado</span></td>
+        {% else %}
+        <td>{{ hour.open_time.strftime('%H:%M') }}</td>
+        <td>{{ hour.close_time.strftime('%H:%M') }}</td>
+        <td><span class="badge bg-success">Aberto</span></td>
+        {% endif %} {% else %}
+        <td colspan="2" class="text-center text-muted">Sem registro</td>
+        <td><span class="badge bg-warning text-dark">Não definido</span></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
