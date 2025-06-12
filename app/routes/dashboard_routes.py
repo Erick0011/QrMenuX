@@ -290,6 +290,8 @@ def profile():
         restaurant.email = request.form.get("restaurant_email").strip()
         restaurant.phone = request.form.get("restaurant_phone").strip()
         restaurant.description = request.form.get("restaurant_description").strip()
+        restaurant.address = request.form["restaurant_address"].strip()
+        restaurant.theme_color = request.form["theme_color"].strip()
 
         db.session.commit()
         flash("Perfil atualizado com sucesso!", "success")

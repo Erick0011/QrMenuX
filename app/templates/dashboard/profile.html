@@ -64,7 +64,9 @@
         type="text"
         name="restaurant_address"
         class="form-control"
-        value="{{ restaurant.address }}"
+        value="{{ restaurant.address or '' }}"
+        placeholder="Ex: Rua Principal, 123, Bairro, Cidade"
+        required
       />
     </div>
     <div class="mb-3">
