@@ -35,7 +35,12 @@ class Restaurant(db.Model):
     theme_color = db.Column(
         db.String(20), default="#1abd27af"
     )  # Hex do tema, ex: "#1700e6b0"
+
     is_active = db.Column(db.Boolean, default=True)
+
+    slot_duration_minutes = db.Column(db.Integer, nullable=False, default=90)
+    slot_buffer_minutes = db.Column(db.Integer, nullable=False, default=5)
+    allow_pass_closing_time = db.Column(db.Boolean, nullable=False, default=False)
 
     subscription = db.relationship(
         "Subscription", uselist=False, backref="restaurant", lazy=True
@@ -148,8 +153,8 @@ class Reservation(db.Model):
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
 
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)  # Hora de início
+    end_time = db.Column(db.DateTime, nullable=False)  # Hora de fim
 
     people = db.Column(db.Integer, nullable=False)
     observations = db.Column(db.Text)

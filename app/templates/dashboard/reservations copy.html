@@ -1,0 +1,148 @@
+{% extends "dashboard/dashboard_base.html" %} {% block title %}Reservas{%
+endblock %} {% block content %}
+<div class="row">
+  <!-- Formulário criação / edição -->
+  <div class="col-lg-5 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Nova Reserva</h5>
+        <form method="POST">
+          <div class="mb-3">
+            <label>Mesa</label>
+            <select class="form-select" name="table_id" required>
+              {% for tbl in tables %}
+              <option value="{{ tbl.id }}">
+                {{ tbl.name }} (capacidade {{ tbl.capacity }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label>Cliente</label>
+            <input
+              type="text"
+              class="form-control"
+              name="customer_name"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label>Telefone</label>
+            <input
+              type="tel"
+              class="form-control"
+              name="customer_phone"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label>Início</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              name="start_time"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label>Fim</label>
+            <input
+              type="datetime-local"
+              class="form-control"
+              name="end_time"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label>Pessoas</label>
+            <input
+              type="number"
+              class="form-control"
+              name="people"
+              min="1"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label>Observações</label>
+            <textarea
+              class="form-control"
+              name="observations"
+              rows="2"
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            Criar Reserva
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de reservas -->
+  <div class="col-lg-7">
+    <h5>Reservas Existentes</h5>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Mesa</th>
+          <th>Cliente</th>
+          <th>Inicio</th>
+          <th>Fim</th>
+          <th>Pessoas</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+        <tr>
+          <td>{{ r.table.name }}</td>
+          <td>{{ r.customer_name }}</td>
+          <td>{{ r.start_time.strftime('%d/%m %H:%M') }}</td>
+          <td>{{ r.end_time.strftime('%d/%m %H:%M') }}</td>
+          <td>{{ r.people }}</td>
+          <td>
+            <span
+              class="badge bg-{{ {'pendente':'secondary','aprovado':'success','recusado':'danger','cancelado':'warning'}[r.status] }}"
+            >
+              {{ r.status.capitalize() }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">Nenhuma reserva</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Horário de funcionamento -->
+<div class="mt-4">
+  <h5>Horário de Funcionamento</h5>
+  {% if hours %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Dia</th>
+        <th>Abrir</th>
+        <th>Fechar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in hours %}
+      <tr>
+        <td>{{ h.day_of_week }}</td>
+        <td>{{ h.open_time.strftime('%H:%M') }}</td>
+        <td>{{ h.close_time.strftime('%H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted">Nenhum horário configurado.</p>
+  {% endif %}
+</div>
+{% endblock %}

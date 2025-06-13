@@ -2,7 +2,15 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
-from app.models import db, Category, MenuItem, OperatingHour, Table, Reservation
+from app.models import (
+    db,
+    Category,
+    MenuItem,
+    OperatingHour,
+    Table,
+    Reservation,
+    Restaurant,
+)
 from flask import current_app
 import qrcode
 import io
@@ -427,16 +435,96 @@ def delete_table(table_id):
     return redirect(url_for("dashboard.list_tables"))
 
 
+def gerar_slots_disponiveis(restaurant_id, mesa_id, data):
+    restaurant = Restaurant.query.get(restaurant_id)
+    if not restaurant:
+        return []
+
+    duracao = timedelta(minutes=restaurant.slot_duration_minutes or 90)
+    buffer = timedelta(minutes=restaurant.slot_buffer_minutes or 5)
+
+    dia_semana = data.strftime("%A")
+    oh = OperatingHour.query.filter_by(
+        restaurant_id=restaurant_id, day_of_week=dia_semana
+    ).first()
+    if not oh or oh.open_time == oh.close_time:
+        return []
+
+    abertura = datetime.combine(data, oh.open_time)
+    fechamento = datetime.combine(data, oh.close_time)
+
+    # Se o restaurante permite ultrapassar o horário de fechamento
+    if restaurant.allow_pass_closing_time:
+        fechamento += duracao
+
+    # Pegando reservas da mesa naquele dia
+    reservas = Reservation.query.filter(
+        Reservation.table_id == mesa_id,
+        Reservation.start_time >= abertura - buffer,
+        Reservation.end_time <= fechamento + buffer,
+    ).all()
+
+    slots = []
+    hora = abertura
+
+    while hora + duracao <= fechamento:
+        slot_inicio = hora
+        slot_fim = hora + duracao
+
+        conflito = False
+        for r in reservas:
+            if not (
+                slot_fim <= r.start_time - buffer or slot_inicio >= r.end_time + buffer
+            ):
+                conflito = True
+                break
+
+        if not conflito:
+            slots.append(
+                (
+                    slot_inicio.time().strftime("%H:%M"),
+                    slot_fim.time().strftime("%H:%M"),
+                )
+            )
+
+        # Avança o relógio para o próximo slot fixo
+        hora += duracao + buffer
+
+    return slots
+
+
 @bp.route("/reservations", methods=["GET", "POST"])
 @login_required
 def reservations():
     restaurant = current_user.restaurant
     tables = Table.query.filter_by(restaurant_id=restaurant.id).all()
-    hours = (
-        OperatingHour.query.filter_by(restaurant_id=restaurant.id)
-        .order_by(OperatingHour.id)
-        .all()
-    )
+    hours = OperatingHour.query.filter_by(restaurant_id=restaurant.id).all()
+
+    painel_disponibilidade = {}
+    data_str = request.args.get("date")  # Recebe a data escolhida como query param
+    data_reserva = None
+    primeiros_slots = []
+
+    if data_str:
+        try:
+            data_reserva = datetime.strptime(data_str, "%Y-%m-%d").date()
+            for mesa in tables:
+                slots = gerar_slots_disponiveis(
+                    restaurant_id=restaurant.id,
+                    mesa_id=mesa.id,
+                    data=data_reserva,
+                )
+                painel_disponibilidade[mesa.name] = slots
+
+            primeiros_slots = []
+            for slots in painel_disponibilidade.values():
+                if slots:
+                    primeiros_slots = slots
+                    break
+
+        except ValueError:
+            flash("Data inválida.", "danger")
+            return redirect(url_for("dashboard.reservations"))
 
     if request.method == "POST":
         table_id = int(request.form["table_id"])
@@ -445,9 +533,8 @@ def reservations():
         start = datetime.fromisoformat(request.form["start_time"])
         end = datetime.fromisoformat(request.form["end_time"])
         people = int(request.form["people"])
-        obs = request.form.get("observations")
+        obs = request.form.get("observations") or ""
 
-        # Verifica se a mesa pertence ao restaurante
         table = Table.query.filter_by(id=table_id, restaurant_id=restaurant.id).first()
         if not table:
             flash("Mesa inválida.", "danger")
@@ -464,52 +551,40 @@ def reservations():
                     obs += (
                         " Solicito cadeiras extras para acomodar todos os convidados."
                     )
-
             else:
                 flash(f"A mesa suporta até {table.capacity} pessoas.", "danger")
                 return redirect(url_for("dashboard.reservations"))
 
-        day_name = start.strftime("%A")  # ex: "Monday"
+        day_name = start.strftime("%A")
         operating_hour = OperatingHour.query.filter_by(
             restaurant_id=restaurant.id, day_of_week=day_name
         ).first()
-
-        if not operating_hour:
-            flash("Horário de funcionamento não definido para este dia.", "danger")
+        if not operating_hour or operating_hour.open_time == operating_hour.close_time:
+            flash("Restaurante fechado neste dia.", "danger")
             return redirect(url_for("dashboard.reservations"))
-
-        open_time = operating_hour.open_time
-        close_time = operating_hour.close_time
 
         if start.date() != end.date():
             flash("A reserva deve começar e terminar no mesmo dia.", "danger")
             return redirect(url_for("dashboard.reservations"))
 
-        # Verifica se a reserva dura no máximo 3 horas
-        if end - start > timedelta(hours=3):
+        if end - start > timedelta(hours=3, minutes=15):
             flash("A duração máxima da reserva é de 3 horas.", "danger")
             return redirect(url_for("dashboard.reservations"))
 
-        if open_time == close_time:
-            flash("Este dia está marcado como fechado.", "danger")
-            return redirect(url_for("dashboard.reservations"))
-
-        # Comparar hora da reserva com horário de funcionamento
         start_clock = start.time()
         end_clock = end.time()
-
         if not (
-            open_time <= start_clock < close_time
-            and open_time < end_clock <= close_time
+            operating_hour.open_time <= start_clock < operating_hour.close_time
+            and operating_hour.open_time < end_clock <= operating_hour.close_time
         ):
             flash("Horário fora do funcionamento do restaurante.", "danger")
             return redirect(url_for("dashboard.reservations"))
 
-        # Verifica conflito com outras reservas
+        BUFFER = timedelta(minutes=5)
         conflict = Reservation.query.filter(
             Reservation.table_id == table_id,
-            Reservation.start_time < end,
-            Reservation.end_time > start,
+            Reservation.start_time - BUFFER < end,
+            Reservation.end_time + BUFFER > start,
         ).first()
 
         if conflict:
@@ -544,4 +619,7 @@ def reservations():
         tables=tables,
         hours=hours,
         reservations=reservations,
+        painel_disponibilidade=painel_disponibilidade,
+        data_reserva=data_reserva,
+        primeiros_slots=primeiros_slots,
     )

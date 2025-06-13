@@ -1,82 +1,71 @@
-{% extends "dashboard/dashboard_base.html" %} {% block title %}Reservas{%
-endblock %} {% block content %}
+{% extends "dashboard/dashboard_base.html" %} {% block title
+%}Reservas{%endblock %} {% block content %}
 <div class="row">
   <!-- Formulário criação / edição -->
   <div class="col-lg-5 mb-4">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Nova Reserva</h5>
-        <form method="POST">
-          <div class="mb-3">
-            <label>Mesa</label>
-            <select class="form-select" name="table_id" required>
-              {% for tbl in tables %}
-              <option value="{{ tbl.id }}">
-                {{ tbl.name }} (capacidade {{ tbl.capacity }})
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label>Cliente</label>
-            <input
-              type="text"
-              class="form-control"
-              name="customer_name"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label>Telefone</label>
-            <input
-              type="tel"
-              class="form-control"
-              name="customer_phone"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label>Início</label>
-            <input
-              type="datetime-local"
-              class="form-control"
-              name="start_time"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label>Fim</label>
-            <input
-              type="datetime-local"
-              class="form-control"
-              name="end_time"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label>Pessoas</label>
-            <input
-              type="number"
-              class="form-control"
-              name="people"
-              min="1"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label>Observações</label>
-            <textarea
-              class="form-control"
-              name="observations"
-              rows="2"
-            ></textarea>
-          </div>
-          <button type="submit" class="btn btn-success w-100">
-            Criar Reserva
-          </button>
-        </form>
-      </div>
-    </div>
+    <!-- Escolher data para gerar os slots -->
+    <form method="get" action="{{ url_for('dashboard.reservations') }}">
+      <label for="date">Escolha a data:</label>
+      <input type="date" name="date" value="{{ data_reserva }}" />
+      <button type="submit">Ver horários</button>
+    </form>
+
+    {% if painel_disponibilidade %}
+    <h4 class="mt-4">Horários disponíveis para {{ data_reserva }}</h4>
+    <ul>
+      {% for mesa, slots in painel_disponibilidade.items() %}
+      <li>
+        <strong>{{ mesa }}</strong>: {% if slots %} {{ slots | join(", ") }} {%
+        else %} Nenhum horário disponível {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Formulário de reserva -->
+    {% if data_reserva %}
+    <h4 class="mt-4">Fazer uma reserva para {{ data_reserva }}</h4>
+    <form method="post">
+      <input type="hidden" name="date" value="{{ data_reserva }}" />
+
+      <label for="customer_name">Nome:</label>
+      <input type="text" name="customer_name" required /><br />
+
+      <label for="customer_phone">Telefone:</label>
+      <input type="text" name="customer_phone" required /><br />
+
+      <label for="table_id">Mesa:</label>
+      <select name="table_id" required>
+        {% for mesa in tables %}
+        <option value="{{ mesa.id }}">
+          {{ mesa.name }} ({{ mesa.capacity }} pessoas)
+        </option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="start_time">Hora de início:</label>
+      <select name="start_time" required>
+        {% for slot in primeiros_slots %}
+        <option value="{{ data_reserva }}T{{ slot[0] }}">{{ slot[0] }}</option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="end_time">Hora de fim:</label>
+      <select name="end_time" required>
+        {% for slot in primeiros_slots %}
+        <option value="{{ data_reserva }}T{{ slot[1] }}">{{ slot[1] }}</option>
+        {% endfor %}</select
+      ><br />
+
+      <label for="people">Número de pessoas:</label>
+      <input type="number" name="people" min="1" required /><br />
+
+      <label for="observations">Observações:</label>
+      <textarea name="observations" rows="3"></textarea><br />
+
+      <button type="submit">Reservar</button>
+    </form>
+    {% endif %}
   </div>
 
   <!-- Tabela de reservas -->
