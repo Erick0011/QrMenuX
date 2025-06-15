@@ -1,229 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Reserva - {{ restaurant.name }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        font-family: sans-serif;
-        padding: 2rem;
-        background: #f7f7f7;
-        color: #333;
-      }
-      h2 {
-        color: {{ theme_color }};
-      }
-      label {
-        font-weight: bold;
-      }
-      .slot-btn, .table-btn {
-        margin: 5px;
-        padding: 8px 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .available {
-        background-color: {{ theme_color }};
-        color: white;
-      }
-      .taken {
-        background-color: #ccc;
-        color: #666;
-        cursor: not-allowed;
-      }
-      .active {
-        outline: 2px solid black;
-        background-color: #222 !important;
-      }
-      input, textarea {
-        width: 100%;
-        padding: 0.5rem;
-        margin-bottom: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      button[type="submit"] {
-        background-color: {{ theme_color }};
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    {% include "modal.html" %}
-    <h2>Fazer uma Reserva no {{ restaurant.name }}</h2>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reservar Mesa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --theme-color: {{ theme_color }};
+    }
 
-    <form method="POST" action="">
-      <label for="datePicker">Data</label>
-      <input
-        type="text"
-        id="datePicker"
-        placeholder="Selecione a data"
-        required
-      />
+    .btn-theme {
+      background-color: var(--theme-color);
+      color: white;
+      border: none;
+    }
 
-      <label>Mesas Disponíveis</label>
-      <div
-        id="tables"
-        style="display: flex; flex-wrap: wrap; margin-bottom: 1rem"
-      ></div>
-      <input type="hidden" name="table_id" id="table_id" />
+    .btn-theme:hover {
+      filter: brightness(90%);
+    }
 
-      <label>Horários Disponíveis</label>
-      <div id="slots" style="display: flex; flex-wrap: wrap"></div>
-      <input type="hidden" name="start_time" id="start_time" />
-      <input type="hidden" name="end_time" id="end_time" />
+    .slot-btn {
+      border-color: var(--theme-color);
+      color: var(--theme-color);
+    }
 
-      <label for="customer_name">Nome</label>
-      <input type="text" name="customer_name" required />
+    .slot-btn:hover {
+      background-color: var(--theme-color);
+      color: white;
+    }
 
-      <label for="customer_phone">Telefone</label>
-      <input type="text" name="customer_phone" required />
+    .form-label {
+      font-weight: 500;
+    }
 
-      <label for="people">Número de Pessoas</label>
-      <input type="number" name="people" min="1" required />
+    body {
+      background-color: #f8f9fa;
+    }
 
-      <label for="observations">Observações</label>
-      <textarea name="observations"></textarea>
+    .card {
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body>
 
-      <button type="submit">Reservar</button>
-    </form>
+  <div class="container my-5">
+    <div class="row justify-content-center">      
+      <div class="col-lg-6">
+        <div class="card shadow p-4">
+          <div class="d-flex justify-content-start mb-3">
+            <a href="{{ url_for('public.menu', slug=slug) }}" class="btn btn-sm slot-btn">
+              <i class="bi bi-house-door me-1"></i>{{ restaurant.name }}</a>
+            </a>
+          </div>
+        
+          <h3 class="text-center mb-4">
+            <i class="bi bi-calendar-check me-2"></i>Fazer Reserva
+          </h3>
+          <!-- Formulário de seleção -->
+          <form method="get" action="{{ url_for('public.reservation', slug=slug) }}">
+            <div class="mb-3">
+              <label for="date" class="form-label">
+                <i class="bi bi-calendar-event me-1"></i>Data:
+              </label>
+              <input type="date" class="form-control" name="date" value="{{ data_reserva }}" required />
+            </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-      const hours = {{ hours|tojson }};
-      const reservations = {{ reservations|tojson }};
-      const tables = {{ tables|tojson }};
-      const slotsDiv = document.getElementById('slots');
-      const tablesDiv = document.getElementById('tables');
+            <div class="mb-3">
+              <label for="table_id" class="form-label">
+                <i class="bi bi-table me-1"></i>Mesa:
+              </label>
+              <select name="table_id" class="form-select" required>
+                <option value="">-- Selecione --</option>
+                {% for mesa in tables %}
+                <option value="{{ mesa.id }}" {% if mesa_escolhida and mesa.id == mesa_escolhida.id %}selected{% endif %}>
+                  {{ mesa.name }} ({{ mesa.capacity }} pessoas)
+                </option>
+                {% endfor %}
+              </select>
+            </div>
 
-      let selectedDate = null;
-      let selectedTableId = null;
-      let selectedSlots = [];
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-theme">
+                <i class="bi bi-search me-1"></i>Ver horários
+              </button>
+            </div>
+          </form>
 
-      flatpickr("#datePicker", {
-        minDate: "today",
-        dateFormat: "Y-m-d",
-        onChange: ([date]) => {
-          selectedDate = date;
-          renderTables();
-          slotsDiv.innerHTML = '';
-          document.getElementById('table_id').value = '';
-        }
-      });
+          <!-- Slots disponíveis -->
+          {% if slots_disponiveis %}
+          <hr />
+          <h5 class="mb-2">Horários disponíveis:</h5>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            {% for inicio, fim in slots_disponiveis %}
+            <button type="button" class="btn slot-btn" 
+                    data-start="{{ data_reserva }}T{{ inicio }}" 
+                    data-end="{{ data_reserva }}T{{ fim }}" 
+                    data-table-id="{{ mesa_escolhida.id }}">
+              <i class="bi bi-clock me-1"></i>{{ inicio }} - {{ fim }}
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
 
-      function renderTables() {
-        tablesDiv.innerHTML = '';
-        tables.forEach(table => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'table-btn available';
-          btn.textContent = `${table.name} (${table.capacity}p)`;
+          <!-- Formulário de reserva -->
+          {% if data_reserva %}
+          <form method="post" id="reserva-form" class="mt-4" style="display: none;">
+            <input type="hidden" name="start_time" id="start_time" />
+            <input type="hidden" name="end_time" id="end_time" />
+            <input type="hidden" name="table_id" id="table_id" />
 
-          btn.onclick = () => {
-            document.querySelectorAll('.table-btn.available').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedTableId = table.id;
-            document.getElementById('table_id').value = table.id;
-            renderSlots();
-          };
+            <div class="mb-3">
+              <label for="customer_name" class="form-label">
+                <i class="bi bi-person me-1"></i>Nome:
+              </label>
+              <input type="text" name="customer_name" class="form-control" required />
+            </div>
 
-          tablesDiv.appendChild(btn);
+            <div class="mb-3">
+              <label for="customer_phone" class="form-label">
+                <i class="bi bi-telephone me-1"></i>Telefone:
+              </label>
+              <input type="text" name="customer_phone" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="people" class="form-label">
+                <i class="bi bi-people me-1"></i>Número de pessoas:
+              </label>
+              <input type="number" name="people" class="form-control" min="1" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="observations" class="form-label">
+                <i class="bi bi-chat-left-text me-1"></i>Observações:
+              </label>
+              <textarea name="observations" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-theme">
+                <i class="bi bi-check2-circle me-1"></i>Confirmar Reserva
+              </button>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script para preencher o formulário de reserva -->
+  <script>
+    document.querySelectorAll(".slot-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("start_time").value = btn.dataset.start;
+        document.getElementById("end_time").value = btn.dataset.end;
+        document.getElementById("table_id").value = btn.dataset.tableId;
+        document.getElementById("reserva-form").style.display = "block";
+        window.scrollTo({
+          top: document.getElementById("reserva-form").offsetTop - 80,
+          behavior: "smooth"
         });
-      }
-
-      function renderSlots() {
-        if (!selectedDate || !selectedTableId) return;
-        slotsDiv.innerHTML = '';
-        selectedSlots = [];
-
-        const day = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-        const op = hours.find(h => h.day === day);
-        if (!op) return;
-
-        const [oh, om] = op.open_time.split(':').map(Number);
-        const [ch, cm] = op.close_time.split(':').map(Number);
-
-        let cur = new Date(selectedDate);
-        cur.setHours(oh, om, 0, 0);
-        const close = new Date(selectedDate);
-        close.setHours(ch, cm, 0, 0);
-
-        const slotMap = [];
-
-        while (cur < close) {
-          const next = new Date(cur.getTime() + 30 * 60000);
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'slot-btn';
-          btn.textContent = `${cur.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-          const thisStart = new Date(cur);
-          const thisEnd = new Date(next);
-
-          const hasConflict = reservations.some(r =>
-            r.table_id === selectedTableId &&
-            new Date(r.start_time) < thisEnd &&
-            new Date(r.end_time) > thisStart
-          );
-
-          btn.disabled = hasConflict;
-          btn.classList.add(hasConflict ? 'taken' : 'available');
-
-          if (!hasConflict) {
-            btn.onclick = () => toggleSlot(thisStart, thisEnd, btn);
-          }
-
-          slotMap.push({ start: thisStart, end: thisEnd, btn });
-          slotsDiv.appendChild(btn);
-          cur = next;
-        }
-
-        function toggleSlot(start, end, btn) {
-          const index = selectedSlots.findIndex(s => s.start.getTime() === start.getTime());
-          if (index !== -1) {
-            selectedSlots.splice(index, 1);
-            btn.classList.remove('active');
-          } else {
-            if (selectedSlots.length >= 6) return; // Limita a 6 blocos
-            selectedSlots.push({ start, end, btn });
-            btn.classList.add('active');
-          }
-
-          // Ordena slots por início
-          selectedSlots.sort((a, b) => a.start - b.start);
-
-          // Verifica se são consecutivos
-          for (let i = 1; i < selectedSlots.length; i++) {
-            const diff = (selectedSlots[i].start - selectedSlots[i - 1].end) / 60000;
-            if (diff !== 0) {
-              // Se não forem blocos seguidos, limpa tudo
-              selectedSlots.forEach(s => s.btn.classList.remove('active'));
-              selectedSlots = [];
-              document.getElementById('start_time').value = '';
-              document.getElementById('end_time').value = '';
-              return;
-            }
-          }
-
-          if (selectedSlots.length > 0) {
-            document.getElementById('start_time').value = selectedSlots[0].start.toISOString();
-            document.getElementById('end_time').value = selectedSlots[selectedSlots.length - 1].end.toISOString();
-          } else {
-            document.getElementById('start_time').value = '';
-            document.getElementById('end_time').value = '';
-          }
-        }
-      }
-    </script>
-  </body>
+      });
+    });
+  </script>
+</body>
 </html>

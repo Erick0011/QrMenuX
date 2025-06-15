@@ -1,21 +1,21 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash,
+    send_file,
+)
 from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
-from app.models import (
-    db,
-    Category,
-    MenuItem,
-    OperatingHour,
-    Table,
-    Reservation,
-    Restaurant,
-)
+from app.models import db, Category, MenuItem, OperatingHour, Table, Reservation
+from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from flask import current_app
 import qrcode
 import io
 import base64
-from flask import send_file
 from datetime import time, datetime, timedelta
 from sqlalchemy import delete
 
@@ -435,64 +435,6 @@ def delete_table(table_id):
     return redirect(url_for("dashboard.list_tables"))
 
 
-def gerar_slots_disponiveis(restaurant_id, mesa_id, data):
-    restaurant = Restaurant.query.get(restaurant_id)
-    if not restaurant:
-        return []
-
-    duracao = timedelta(minutes=restaurant.slot_duration_minutes or 90)
-    buffer = timedelta(minutes=restaurant.slot_buffer_minutes or 5)
-
-    dia_semana = data.strftime("%A")
-    oh = OperatingHour.query.filter_by(
-        restaurant_id=restaurant_id, day_of_week=dia_semana
-    ).first()
-    if not oh or oh.open_time == oh.close_time:
-        return []
-
-    abertura = datetime.combine(data, oh.open_time)
-    fechamento = datetime.combine(data, oh.close_time)
-
-    # Se o restaurante permite ultrapassar o horário de fechamento
-    if restaurant.allow_pass_closing_time:
-        fechamento += duracao
-
-    # Pegando reservas da mesa naquele dia
-    reservas = Reservation.query.filter(
-        Reservation.table_id == mesa_id,
-        Reservation.start_time >= abertura - buffer,
-        Reservation.end_time <= fechamento + buffer,
-    ).all()
-
-    slots = []
-    hora = abertura
-
-    while hora + duracao <= fechamento:
-        slot_inicio = hora
-        slot_fim = hora + duracao
-
-        conflito = False
-        for r in reservas:
-            if not (
-                slot_fim <= r.start_time - buffer or slot_inicio >= r.end_time + buffer
-            ):
-                conflito = True
-                break
-
-        if not conflito:
-            slots.append(
-                (
-                    slot_inicio.time().strftime("%H:%M"),
-                    slot_fim.time().strftime("%H:%M"),
-                )
-            )
-
-        # Avança o relógio para o próximo slot fixo
-        hora += duracao + buffer
-
-    return slots
-
-
 @bp.route("/reservations", methods=["GET", "POST"])
 @login_required
 def reservations():
@@ -500,14 +442,8 @@ def reservations():
     tables = Table.query.filter_by(restaurant_id=restaurant.id).all()
     hours = OperatingHour.query.filter_by(restaurant_id=restaurant.id).all()
 
-    painel_disponibilidade = {}
-    data_str = request.args.get("date")  # Recebe a data escolhida como query param
-    data_reserva = None
-    primeiros_slots = []
-
     data_str = request.args.get("date")
     mesa_id_str = request.args.get("table_id")
-
     data_reserva = None
     mesa_escolhida = None
     slots_disponiveis = []
@@ -582,11 +518,10 @@ def reservations():
             flash("Horário fora do funcionamento do restaurante.", "danger")
             return redirect(url_for("dashboard.reservations"))
 
-        BUFFER = timedelta(minutes=5)
         conflict = Reservation.query.filter(
             Reservation.table_id == table_id,
-            Reservation.start_time - BUFFER < end,
-            Reservation.end_time + BUFFER > start,
+            Reservation.start_time < end,
+            Reservation.end_time > start,
         ).first()
 
         if conflict:
@@ -621,9 +556,7 @@ def reservations():
         tables=tables,
         hours=hours,
         reservations=reservations,
-        painel_disponibilidade=painel_disponibilidade,
         data_reserva=data_reserva,
-        primeiros_slots=primeiros_slots,
         mesa_escolhida=mesa_escolhida,
         slots_disponiveis=slots_disponiveis,
     )

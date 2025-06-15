@@ -136,18 +136,31 @@
 
           <!-- Captura de leads -->
           <div class="col-md-4">
-            <h6 class="fw-bold">Receba novidades!</h6>
-            <form>
-              <div class="input-group">
-                <input
-                  type="email"
-                  class="form-control"
-                  placeholder="Seu e-mail"
-                  required
-                />
-                <button class="btn btn-light" type="submit">Cadastrar</button>
-              </div>
-            </form>
+            <h6 class="fw-bold">
+              <i class="bi bi-clock-history me-1"></i>Aberto de / até
+            </h6>
+            <ul class="list-unstyled small mt-3">
+              {% set dias_semana = { "Monday": "Segunda", "Tuesday": "Terça",
+              "Wednesday": "Quarta", "Thursday": "Quinta", "Friday": "Sexta",
+              "Saturday": "Sábado", "Sunday": "Domingo" } %} {% for day in
+              ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+              "Saturday", "Sunday"] %} {% set hour =
+              hours|selectattr("day_of_week", "equalto", day)|first %}
+              <li class="mb-1 d-flex justify-content-between">
+                <span>{{ dias_semana[day] }}:</span>
+                {% if hour %} {% if hour.open_time == hour.close_time %}
+                <span class="text-muted">Fechado</span>
+                {% else %}
+                <span
+                  >{{ hour.open_time.strftime('%H:%M') }} - {{
+                  hour.close_time.strftime('%H:%M') }}</span
+                >
+                {% endif %} {% else %}
+                <span class="text-muted">Não definido</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
           </div>
 
           <!-- Publicidade QRmenuX -->
