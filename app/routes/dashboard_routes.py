@@ -505,26 +505,28 @@ def reservations():
     data_reserva = None
     primeiros_slots = []
 
-    if data_str:
+    data_str = request.args.get("date")
+    mesa_id_str = request.args.get("table_id")
+
+    data_reserva = None
+    mesa_escolhida = None
+    slots_disponiveis = []
+
+    if data_str and mesa_id_str:
         try:
             data_reserva = datetime.strptime(data_str, "%Y-%m-%d").date()
-            for mesa in tables:
-                slots = gerar_slots_disponiveis(
+            mesa_escolhida = Table.query.filter_by(
+                id=int(mesa_id_str), restaurant_id=restaurant.id
+            ).first()
+
+            if mesa_escolhida:
+                slots_disponiveis = gerar_slots_disponiveis(
                     restaurant_id=restaurant.id,
-                    mesa_id=mesa.id,
+                    mesa_id=mesa_escolhida.id,
                     data=data_reserva,
                 )
-                painel_disponibilidade[mesa.name] = slots
-
-            primeiros_slots = []
-            for slots in painel_disponibilidade.values():
-                if slots:
-                    primeiros_slots = slots
-                    break
-
         except ValueError:
-            flash("Data inválida.", "danger")
-            return redirect(url_for("dashboard.reservations"))
+            flash("Erro ao carregar horários.", "danger")
 
     if request.method == "POST":
         table_id = int(request.form["table_id"])
@@ -622,4 +624,6 @@ def reservations():
         painel_disponibilidade=painel_disponibilidade,
         data_reserva=data_reserva,
         primeiros_slots=primeiros_slots,
+        mesa_escolhida=mesa_escolhida,
+        slots_disponiveis=slots_disponiveis,
     )
