@@ -153,8 +153,8 @@ class Reservation(db.Model):
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
 
-    start_time = db.Column(db.DateTime, nullable=False)  # Hora de início
-    end_time = db.Column(db.DateTime, nullable=False)  # Hora de fim
+    start_time = db.Column(db.DateTime, nullable=False)   
+    end_time = db.Column(db.DateTime, nullable=False)   
 
     people = db.Column(db.Integer, nullable=False)
     observations = db.Column(db.Text)

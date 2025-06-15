@@ -15,6 +15,7 @@ from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from flask import current_app
 import qrcode
 import io
+from io import BytesIO
 import base64
 from datetime import time, datetime, timedelta
 from sqlalchemy import delete
@@ -438,125 +439,97 @@ def delete_table(table_id):
 @bp.route("/reservations", methods=["GET", "POST"])
 @login_required
 def reservations():
-    restaurant = current_user.restaurant
-    tables = Table.query.filter_by(restaurant_id=restaurant.id).all()
-    hours = OperatingHour.query.filter_by(restaurant_id=restaurant.id).all()
-
-    data_str = request.args.get("date")
-    mesa_id_str = request.args.get("table_id")
-    data_reserva = None
-    mesa_escolhida = None
-    slots_disponiveis = []
-
-    if data_str and mesa_id_str:
-        try:
-            data_reserva = datetime.strptime(data_str, "%Y-%m-%d").date()
-            mesa_escolhida = Table.query.filter_by(
-                id=int(mesa_id_str), restaurant_id=restaurant.id
-            ).first()
-
-            if mesa_escolhida:
-                slots_disponiveis = gerar_slots_disponiveis(
-                    restaurant_id=restaurant.id,
-                    mesa_id=mesa_escolhida.id,
-                    data=data_reserva,
-                )
-        except ValueError:
-            flash("Erro ao carregar horários.", "danger")
-
+    # Ações de POST (mudar status ou deletar)
     if request.method == "POST":
-        table_id = int(request.form["table_id"])
-        name = request.form["customer_name"].strip()
-        phone = request.form["customer_phone"].strip()
-        start = datetime.fromisoformat(request.form["start_time"])
-        end = datetime.fromisoformat(request.form["end_time"])
-        people = int(request.form["people"])
-        obs = request.form.get("observations") or ""
+        action = request.form.get("action")
+        res_id = request.form.get("reservation_id")
+        reservation = Reservation.query.get_or_404(res_id)
 
-        table = Table.query.filter_by(id=table_id, restaurant_id=restaurant.id).first()
-        if not table:
-            flash("Mesa inválida.", "danger")
+        # Confere se pertence ao restaurante do user
+        if reservation.restaurant_id != current_user.restaurant.id:
+            flash("Ação não permitida", "danger")
             return redirect(url_for("dashboard.reservations"))
 
-        if people > table.capacity:
-            if people <= table.capacity + 2:
-                flash(
-                    f"A mesa suporta até {table.capacity} pessoas. "
-                    "Cadeiras extras foram solicitadas nas observações!",
-                    "warning",
-                )
-                if "Solicito cadeiras extras" not in obs:
-                    obs += (
-                        " Solicito cadeiras extras para acomodar todos os convidados."
-                    )
-            else:
-                flash(f"A mesa suporta até {table.capacity} pessoas.", "danger")
-                return redirect(url_for("dashboard.reservations"))
-
-        day_name = start.strftime("%A")
-        operating_hour = OperatingHour.query.filter_by(
-            restaurant_id=restaurant.id, day_of_week=day_name
-        ).first()
-        if not operating_hour or operating_hour.open_time == operating_hour.close_time:
-            flash("Restaurante fechado neste dia.", "danger")
-            return redirect(url_for("dashboard.reservations"))
-
-        if start.date() != end.date():
-            flash("A reserva deve começar e terminar no mesmo dia.", "danger")
-            return redirect(url_for("dashboard.reservations"))
-
-        if end - start > timedelta(hours=3, minutes=15):
-            flash("A duração máxima da reserva é de 3 horas.", "danger")
-            return redirect(url_for("dashboard.reservations"))
-
-        start_clock = start.time()
-        end_clock = end.time()
-        if not (
-            operating_hour.open_time <= start_clock < operating_hour.close_time
-            and operating_hour.open_time < end_clock <= operating_hour.close_time
-        ):
-            flash("Horário fora do funcionamento do restaurante.", "danger")
-            return redirect(url_for("dashboard.reservations"))
-
-        conflict = Reservation.query.filter(
-            Reservation.table_id == table_id,
-            Reservation.start_time < end,
-            Reservation.end_time > start,
-        ).first()
-
-        if conflict:
-            flash("Horário indisponível para essa mesa!", "danger")
-        else:
-            res = Reservation(
-                customer_name=name,
-                customer_phone=phone,
-                start_time=start,
-                end_time=end,
-                people=people,
-                observations=obs,
-                table_id=table_id,
-                status="pendente",
-                restaurant_id=restaurant.id,
-            )
-            db.session.add(res)
+        if action == "delete":
+            db.session.delete(reservation)
             db.session.commit()
-            flash("Reserva criada com sucesso!", "success")
+            flash("Reserva removida com sucesso", "success")
+
+        elif action == "set_status":
+            new_status = request.form.get("new_status")
+            reservation.status = new_status
+            db.session.commit()
+            flash("Status atualizado!", "success")
 
         return redirect(url_for("dashboard.reservations"))
 
-    reservations = (
-        Reservation.query.join(Table)
-        .filter(Table.restaurant_id == restaurant.id)
-        .order_by(Reservation.start_time)
-        .all()
-    )
+    # Filtros GET
+    status = request.args.get("status")
+    date = request.args.get("date")
+    keyword = request.args.get("keyword")
 
-    return render_template(
-        "dashboard/reservations.html",
-        tables=tables,
-        hours=hours,
-        reservations=reservations,
-        data_reserva=data_reserva,
-        mesa_escolhida=mesa_escolhida,
-        slots_disponiveis=slots_disponiveis,
+    query = Reservation.query.filter_by(restaurant_id=current_user.restaurant.id)
+
+    if status:
+        query = query.filter_by(status=status)
+
+    if date:
+        try:
+            from datetime import datetime
+
+            parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
+            query = query.filter(db.func.date(Reservation.start_time) == parsed_date)
+        except ValueError:
+            pass
+
+    if keyword:
+        termo = f"%{keyword}%"
+        query = query.filter(
+            db.or_(
+                Reservation.customer_name.ilike(termo),
+                Reservation.customer_phone.ilike(termo),
+                Reservation.unique_code.ilike(termo),
+            )
+        )
+
+    reservas = query.order_by(Reservation.start_time.desc()).all()
+
+    return render_template("dashboard/reservations.html", reservas=reservas)
+
+
+@bp.route("/reservations/<int:id>/receipt", methods=["GET"])
+@login_required
+def reservation_receipt(id):
+    reserva = Reservation.query.get_or_404(id)
+
+    if reserva.restaurant_id != current_user.restaurant.id:
+        flash("Acesso negado", "danger")
+        return redirect(url_for("dashboard.reservations_dashboard"))
+
+    # Aqui poderia usar ReportLab, WeasyPrint ou fpdf. Para exemplo:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Comprovante de Reserva", ln=1, align="C")
+    pdf.ln(10)
+    pdf.cell(0, 10, txt=f"Nome: {reserva.customer_name}", ln=1)
+    pdf.cell(0, 10, txt=f"Telefone: {reserva.customer_phone}", ln=1)
+    pdf.cell(
+        0, 10, txt=f"Data e Hora: {reserva.start_time.strftime('%d/%m/%Y %H:%M')}", ln=1
+    )
+    pdf.cell(0, 10, txt=f"Nº Pessoas: {reserva.people}", ln=1)
+    pdf.cell(0, 10, txt=f"Código: {reserva.unique_code}", ln=1)
+
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+
+    return send_file(
+        pdf_output,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"reserva_{reserva.id}.pdf",
     )

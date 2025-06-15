@@ -1,145 +1,163 @@
 {% extends "dashboard/dashboard_base.html" %} {% block title
 %}Reservas{%endblock %} {% block content %}
-<div class="row">
-  <!-- Formulário criação / edição -->
-  <div class="col-lg-5 mb-4">
-    <!-- Escolher data para gerar os slots -->
-    <form method="get" action="{{ url_for('dashboard.reservations') }}">
-      <label for="date">Escolha a data:</label>
-      <input type="date" name="date" value="{{ data_reserva }}" required />
-    
-      <label for="table_id">Escolha a mesa:</label>
-      <select name="table_id" required>
-        <option value="">-- Selecione --</option>
-        {% for mesa in tables %}
-        <option value="{{ mesa.id }}" {% if mesa_escolhida and mesa.id == mesa_escolhida.id %}selected{% endif %}>
-          {{ mesa.name }} ({{ mesa.capacity }} pessoas)
-        </option>
+<div class="container mt-4">
+  <h2 class="mb-4 text-success">Painel de Reservas</h2>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <input type="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select">
+        <option value="">Todos os status</option>
+        {% for s in ['pendente', 'aprovado', 'usada', 'cancelado'] %}
+        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s.capitalize() }}</option>
         {% endfor %}
       </select>
-    
-      <button type="submit">Ver horários</button>
-    </form>
-    
-
-    {% if slots_disponiveis %}
-    <h4 class="mt-4">Clique em um horário para reservar:</h4>
-    <div class="d-flex flex-wrap gap-2">
-      {% for inicio, fim in slots_disponiveis %}
-      <button type="button" class="btn btn-outline-primary slot-btn" 
-              data-start="{{ data_reserva }}T{{ inicio }}" 
-              data-end="{{ data_reserva }}T{{ fim }}" 
-              data-table-id="{{ mesa_escolhida.id }}">
-        {{ inicio }} - {{ fim }}
-      </button>
-      {% endfor %}
     </div>
-    {% endif %}
-    
+    <div class="col-md-3">
+      <input type="text" name="keyword" class="form-control" placeholder="Nome, telefone ou código" value="{{ request.args.get('keyword', '') }}">
+    </div>
+    <div class="col-md-3 d-grid">
+      <button class="btn btn-success"><i class="bi bi-funnel"></i> Filtrar</button>
+    </div>
+  </form>
 
-    <!-- Formulário de reserva -->
-    {% if data_reserva %}
-    <h4 class="mt-4">Fazer uma reserva para {{ data_reserva }}</h4>
-    <form method="post" id="reserva-form" class="mt-4" style="display: none;">
-      <input type="hidden" name="start_time" id="start_time" />
-      <input type="hidden" name="end_time" id="end_time" />
-      <input type="hidden" name="table_id" id="table_id" />
-    
-      <label for="customer_name">Nome:</label>
-      <input type="text" name="customer_name" required /><br />
-    
-      <label for="customer_phone">Telefone:</label>
-      <input type="text" name="customer_phone" required /><br />
-    
-      <label for="people">Número de pessoas:</label>
-      <input type="number" name="people" min="1" required /><br />
-    
-      <label for="observations">Observações:</label>
-      <textarea name="observations" rows="3"></textarea><br />
-    
-      <button type="submit">Reservar</button>
-    </form>
-    
-    {% endif %}
-  </div>
-
-  <!-- Tabela de reservas -->
-  <div class="col-lg-7">
-    <h5>Reservas Existentes</h5>
-    <table class="table table-hover">
-      <thead>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-success">
         <tr>
-          <th>Mesa</th>
+          <th>Código</th>
           <th>Cliente</th>
-          <th>Inicio</th>
-          <th>Fim</th>
-          <th>Pessoas</th>
+          <th>Mesa</th>
+          <th>Data</th>
           <th>Status</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        {% for r in reservations %}
+        {% for r in reservas %}
         <tr>
+          <td><code>{{ r.unique_code }}</code></td>
+          <td>{{ r.customer_name }}<br><small class="text-muted">{{ r.customer_phone }}</small></td>
           <td>{{ r.table.name }}</td>
-          <td>{{ r.customer_name }}</td>
-          <td>{{ r.start_time.strftime('%d/%m %H:%M') }}</td>
-          <td>{{ r.end_time.strftime('%d/%m %H:%M') }}</td>
-          <td>{{ r.people }}</td>
+          <td>{{ r.start_time.strftime('%d/%m %H:%M') }} - {{ r.end_time.strftime('%H:%M') }}</td>
           <td>
-            <span
-              class="badge bg-{{ {'pendente':'secondary','aprovado':'success','recusado':'danger','cancelado':'warning'}[r.status] }}"
-            >
+            <span class="badge bg-{% if r.status == 'pendente' %}warning text-dark{% elif r.status == 'usada' %}success{% elif r.status == 'cancelado' %}danger{% else %}secondary{% endif %}">
               {{ r.status.capitalize() }}
             </span>
           </td>
+          <td>
+            <button
+              class="btn btn-sm btn-outline-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#modalReserva{{ r.id }}"
+              title="Ver Detalhes"
+            >
+              <i class="bi bi-eye"></i> 
+            </button>
+            <form method="post" class="d-inline">
+              <input type="hidden" name="reservation_id" value="{{ r.id }}">
+              <input type="hidden" name="action" value="set_status">
+              <input type="hidden" name="new_status" value="usada">
+              <button class="btn btn-sm btn-outline-success" title="Marcar como Usada">
+                <i class="bi bi-check-circle"></i>
+              </button>
+            </form>
+
+            <form method="post" class="d-inline">
+              <input type="hidden" name="reservation_id" value="{{ r.id }}">
+              <input type="hidden" name="action" value="delete">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Confirmar remoção?')" title="Excluir">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+
+            <a href="{{ url_for('dashboard.reservation_receipt', id=r.id) }}" class="btn btn-sm btn-outline-secondary" title="Baixar comprovante">
+              <i class="bi bi-download"></i>
+            </a>
+          </td>
         </tr>
+        <!-- Modal de Detalhes da Reserva -->
+        <div
+        class="modal fade"
+        id="modalReserva{{ r.id }}"
+        tabindex="-1"
+        aria-labelledby="modalReservaLabel{{ r.id }}"
+        aria-hidden="true"
+        >
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title" id="modalReservaLabel{{ r.id }}">
+                Detalhes da Reserva
+              </h5>
+              <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+                aria-label="Fechar"
+              ></button>
+            </div>
+
+            <div class="modal-body">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                  <strong>Nome:</strong> {{ r.customer_name }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Telefone:</strong> {{ r.customer_phone }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Data e Hora:</strong>
+                  {{ r.start_time.strftime('%d/%m/%Y %H:%M') }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Término:</strong>
+                  {{ r.end_time.strftime('%d/%m/%Y %H:%M') }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Pessoas:</strong> {{ r.people }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Mesa:</strong> {{ r.table.name }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Status:</strong>
+                  <span class="badge bg-{{ 'success' if r.status == 'confirmada' else 'secondary' if r.status == 'pendente' else 'danger' if r.status == 'cancelada' else 'info' }}">
+                    {{ r.status.capitalize() }}
+                  </span>
+                </li>
+                {% if r.observations %}
+                <li class="list-group-item">
+                  <strong>Observações:</strong> {{ r.observations }}
+                </li>
+                {% endif %}
+                <li class="list-group-item">
+                  <strong>Código único:</strong> {{ r.unique_code }}
+                </li>
+              </ul>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+
         {% else %}
-        <tr>
-          <td colspan="6" class="text-center text-muted">Nenhuma reserva</td>
-        </tr>
+        <tr><td colspan="6">Nenhuma reserva encontrada</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
-
-<!-- Horário de funcionamento -->
-<div class="mt-4">
-  <h5>Horário de Funcionamento</h5>
-  {% if hours %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Dia</th>
-        <th>Abrir</th>
-        <th>Fechar</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for h in hours %}
-      <tr>
-        <td>{{ h.day_of_week }}</td>
-        <td>{{ h.open_time.strftime('%H:%M') }}</td>
-        <td>{{ h.close_time.strftime('%H:%M') }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="text-muted">Nenhum horário configurado.</p>
-  {% endif %}
-</div>
-
-<script>
-  document.querySelectorAll(".slot-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.getElementById("start_time").value = btn.dataset.start;
-      document.getElementById("end_time").value = btn.dataset.end;
-      document.getElementById("table_id").value = btn.dataset.tableId;
-      document.getElementById("reserva-form").style.display = "block";
-      window.scrollTo({ top: document.getElementById("reserva-form").offsetTop - 100, behavior: "smooth" });
-    });
-  });
-</script>
 
 {% endblock %}
