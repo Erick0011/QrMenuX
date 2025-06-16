@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, request, jsonify, url_for, flash
 from app.models import Restaurant, Category, OperatingHour, Reservation, Table
-from flask import request, redirect, url_for, flash
 from datetime import datetime, timedelta
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from app import db
@@ -169,6 +168,17 @@ def reservation(slug):
         reservations=reservations_data,
         tables=table_list,
     )"""
+
+
+@bp.route("/track-item-view", methods=["POST"])
+def track_item_view():
+    data = request.get_json()
+    item_id = data.get("item_id")
+    slug = data.get("slug")
+
+    print(f"Item visualizado: {item_id} | Restaurante: {slug}")
+
+    return jsonify({"status": "ok"})
 
 
 @bp.route("/<slug>/reservation", methods=["GET", "POST"])
