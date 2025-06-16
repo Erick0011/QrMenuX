@@ -10,7 +10,17 @@ from flask import (
 from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
-from app.models import db, Category, MenuItem, OperatingHour, Table, Reservation
+from app.models import (
+    db,
+    Category,
+    MenuItem,
+    OperatingHour,
+    Table,
+    Reservation,
+    PageVisit,
+    ItemView,
+    DailyAnalytics,
+)
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from flask import current_app
 import qrcode
@@ -19,7 +29,8 @@ from io import BytesIO
 import base64
 from datetime import time, datetime, timedelta
 from sqlalchemy import delete
-
+from sqlalchemy import func, extract
+from app.utils.now_angola import now_angola
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -27,6 +38,85 @@ bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 @bp.route("/")
 @login_required
 def index():
+    restaurant = current_user.restaurant
+
+    # --- KPIs gerais ---
+    total_reservations = Reservation.query.filter_by(
+        restaurant_id=restaurant.id
+    ).count()
+    total_visits = PageVisit.query.filter_by(restaurant_id=restaurant.id).count()
+    total_item_views = ItemView.query.filter_by(restaurant_id=restaurant.id).count()
+    total_people = (
+        db.session.query(func.sum(Reservation.people))
+        .filter_by(restaurant_id=restaurant.id)
+        .scalar()
+        or 0
+    )
+
+    # --- Analytics dos últimos 7 dias ---
+    last_7_days = now_angola().date() - timedelta(days=6)
+    analytics = (
+        DailyAnalytics.query.filter(
+            DailyAnalytics.restaurant_id == restaurant.id,
+            DailyAnalytics.date >= last_7_days,
+        )
+        .order_by(DailyAnalytics.date)
+        .all()
+    )
+
+    # Heatmap: hora x dia da semana
+    heatmap = {}
+    for r in (
+        Reservation.query.filter_by(restaurant_id=restaurant.id)
+        .filter(Reservation.start_time != None)
+        .all()
+    ):
+        dow = r.start_time.strftime("%A")
+        hour = r.start_time.hour
+        key = (dow, hour)
+        heatmap[key] = heatmap.get(key, 0) + 1
+
+    # Pratos mais visualizados
+    top_items = (
+        db.session.query(MenuItem.name, db.func.count(ItemView.id).label("views"))
+        .join(ItemView, MenuItem.id == ItemView.item_id)
+        .filter(ItemView.restaurant_id == restaurant.id)
+        .group_by(MenuItem.id)
+        .order_by(db.desc("views"))
+        .limit(10)
+        .all()
+    )
+
+    bar_labels = [name for name, _ in top_items]
+    bar_values = [views for _, views in top_items]
+
+    labels = [a.date.strftime("%d/%m") for a in analytics]
+    visits = [a.total_visits for a in analytics]
+    item_views = [a.total_item_views for a in analytics]
+    reservations = [a.total_reservations for a in analytics]
+    people = [a.total_people for a in analytics]
+
+    return render_template(
+        "dashboard/index.html",
+        total_reservations=total_reservations,
+        total_visits=total_visits,
+        total_item_views=total_item_views,
+        total_people=total_people,
+        labels=labels,
+        visits=visits,
+        item_views=item_views,
+        reservations=reservations,
+        people=people,
+        heatmap=heatmap,
+        bar_labels=bar_labels,
+        bar_values=bar_values,
+        top_items=top_items,
+    )
+
+
+@bp.route("/")
+@login_required
+def indexa():
     # Página inicial do painel
     return render_template("dashboard/index.html")
 

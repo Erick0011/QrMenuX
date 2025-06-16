@@ -1,7 +1,168 @@
-{% extends "dashboard/dashboard_base.html" %}
-{% block title %} Incio {% endblock %}
+<!-- templates/dashboard/overview.html -->
+{% extends "dashboard/dashboard_base.html" %} {% block title %}Dashboard{%
+endblock %} {% block content %}
+<div class="container my-4">
+  <h1 class="mb-4">Visão Geral</h1>
 
-{% block content %}
-  <h2>Bem-vindo ao seu painel</h2>
-      <p>Gerencie seu cardápio digital com facilidade.</p>
+  <!-- Indicadores -->
+  <div class="row text-center mb-4">
+    <div class="col-md-3">
+      <div class="card p-3 shadow-sm">
+        <h5>Reservas</h5>
+        <h2>{{ total_reservations }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 shadow-sm">
+        <h5>Visitas à Página</h5>
+        <h2>{{ total_visits }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 shadow-sm">
+        <h5>Visualizações de Itens</h5>
+        <h2>{{ total_item_views }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 shadow-sm">
+        <h5>Pessoas Atendidas</h5>
+        <h2>{{ total_people }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="card p-4 shadow-sm">
+    <canvas id="analyticsChart"></canvas>
+  </div>
+  <!-- GRÁFICO DE BARRAS DE PRATOS MAIS VISTOS -->
+  <div class="card p-4 my-4 shadow-sm">
+    <h5>Pratos mais visualizados</h5>
+    <canvas id="barChart"></canvas>
+  </div>
+
+  <!-- HEATMAP DE HORÁRIOS -->
+  <div class="card p-4 my-4 shadow-sm">
+    <h5>Horários mais movimentados (Heatmap)</h5>
+    <div id="heatmap" style="overflow-x: auto">
+      <table class="table table-bordered text-center align-middle">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            {% for day in
+            ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+            %}
+            <th>{{ day }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for hour in range(8, 24) %}
+          <tr>
+            <td>{{ "%02d:00" % hour }}</td>
+            {% for day in
+            ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+            %} {% set count = heatmap.get((day, hour), 0) %}
+            <td
+              style="background-color: rgba(26, 188, 156, {{ count / 10 if count < 10 else 1 }});"
+            >
+              {{ count if count > 0 else '' }}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TABELA DOS MAIS VISTOS -->
+  <div class="card p-4 my-4 shadow-sm">
+    <h5>Top 10 itens mais visualizados</h5>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Visualizações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for name, views in top_items %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{{ views }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('analyticsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ labels|tojson }},
+      datasets: [
+        {
+          label: 'Visitas',
+          data: {{ visits|tojson }},
+          borderColor: 'rgba(54, 162, 235, 1)',
+          fill: false
+        },
+        {
+          label: 'Visualizações de Itens',
+          data: {{ item_views|tojson }},
+          borderColor: 'rgba(255, 206, 86, 1)',
+          fill: false
+        },
+        {
+          label: 'Reservas',
+          data: {{ reservations|tojson }},
+          borderColor: 'rgba(75, 192, 192, 1)',
+          fill: false
+        },
+        {
+          label: 'Pessoas',
+          data: {{ people|tojson }},
+          borderColor: 'rgba(255, 99, 132, 1)',
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Últimos 7 Dias'
+        }
+      }
+    }
+  });
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: {{ bar_labels|tojson }},
+      datasets: [{
+        label: 'Visualizações',
+        data: {{ bar_values|tojson }},
+        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+        borderColor: 'rgba(192, 57, 43, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: { beginAtZero: true }
+      }
+    }
+  });
+</script>
 {% endblock %}
