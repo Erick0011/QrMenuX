@@ -1,7 +1,16 @@
 from flask import Blueprint, redirect, render_template, request, jsonify, url_for, flash
-from app.models import Restaurant, Category, OperatingHour, Reservation, Table
+from app.models import (
+    Restaurant,
+    Category,
+    OperatingHour,
+    Reservation,
+    Table,
+    ItemView,
+    PageVisit,
+)
 from datetime import datetime, timedelta
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
+from app.utils.now_angola import now_angola
 from app import db
 
 
@@ -175,10 +184,44 @@ def track_item_view():
     data = request.get_json()
     item_id = data.get("item_id")
     slug = data.get("slug")
+    ip = request.remote_addr
 
-    print(f"Item visualizado: {item_id} | Restaurante: {slug}")
+    restaurant = Restaurant.query.filter_by(slug=slug).first()
+    if restaurant:
+        view = ItemView(
+            item_id=item_id, slug=slug, ip_address=ip, restaurant_id=restaurant.id
+        )
+        db.session.add(view)
+        db.session.commit()
 
     return jsonify({"status": "ok"})
+
+
+@bp.route("/api/visita/<slug>", methods=["POST"])
+def registrar_visita(slug):
+    ip = request.remote_addr
+    now = now_angola()
+
+    restaurant = Restaurant.query.filter_by(slug=slug).first()
+    if not restaurant:
+        return jsonify({"status": "not_found"}), 404
+
+    # Verifica a última visita do mesmo IP a esse restaurante
+    ultima = (
+        PageVisit.query.filter_by(slug=slug, ip_address=ip)
+        .order_by(PageVisit.timestamp.desc())
+        .first()
+    )
+
+    if not ultima or (now - ultima.timestamp > timedelta(minutes=30)):
+        visita = PageVisit(
+            slug=slug, ip_address=ip, restaurant_id=restaurant.id, timestamp=now
+        )
+        db.session.add(visita)
+        db.session.commit()
+        return jsonify({"status": "registrado"})
+
+    return jsonify({"status": "ignorado"})
 
 
 @bp.route("/<slug>/reservation", methods=["GET", "POST"])

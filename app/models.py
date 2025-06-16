@@ -153,8 +153,8 @@ class Reservation(db.Model):
     customer_name = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(20), nullable=False)
 
-    start_time = db.Column(db.DateTime, nullable=False)   
-    end_time = db.Column(db.DateTime, nullable=False)   
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
 
     people = db.Column(db.Integer, nullable=False)
     observations = db.Column(db.Text)
@@ -167,3 +167,32 @@ class Reservation(db.Model):
     )  # pendente, aprovado, recusado, cancelado...
     created_at = db.Column(db.DateTime, default=lambda: now_angola())
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurant.id"))
+
+
+class PageVisit(db.Model):
+    __tablename__ = "page_visits"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(255), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: now_angola())
+
+    restaurant_id = db.Column(
+        db.Integer, db.ForeignKey("restaurant.id"), nullable=False
+    )
+    restaurant = db.relationship("Restaurant", backref="page_visits")
+
+
+class ItemView(db.Model):
+    __tablename__ = "item_views"
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, nullable=False)
+    slug = db.Column(db.String(255), nullable=False)
+    ip_address = db.Column(db.String(45))
+    timestamp = db.Column(db.DateTime, default=lambda: now_angola())
+
+    restaurant_id = db.Column(
+        db.Integer, db.ForeignKey("restaurant.id"), nullable=False
+    )
+    restaurant = db.relationship("Restaurant", backref="item_views")

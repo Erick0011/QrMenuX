@@ -173,7 +173,7 @@
                 data-description="{{ item.description or 'Sem descrição' }}"
                 data-price="{{ "%.2f"|format(item.price) }}"
                 data-image="{{ url_for('static', filename='uploads/' + item.image_filename) }}">
-                Ver mais
+                <i class="bi bi-eye"></i>
                 </a>
               </div>
             </div>
@@ -352,6 +352,22 @@
         
 
       });
+
+      const visitKey = "visited_{{ restaurant.slug }}";
+
+      if (!sessionStorage.getItem(visitKey)) {
+        sessionStorage.setItem(visitKey, "true");
+
+        fetch(`/api/visita/{{ restaurant.slug }}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ timestamp: new Date().toISOString() })
+        }).catch(error => {
+          console.error("Erro ao enviar visita:", error);
+        });
+      }
 
       
     </script>
