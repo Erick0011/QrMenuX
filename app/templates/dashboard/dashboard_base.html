@@ -69,6 +69,15 @@
             <li class="nav-item">
               <a
                 class="nav-link"
+                href="{{ url_for('dashboard.reservations') }}"
+              >
+                <i class="bi bi-calendar-check me-1"></i>Reservas
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link"
                 href="{{ url_for('dashboard.list_categories') }}"
               >
                 <i class="bi bi-tags me-1"></i>Categorias
