@@ -185,11 +185,16 @@ def track_item_view():
     item_id = data.get("item_id")
     slug = data.get("slug")
     ip = request.remote_addr
+    user_agent = request.headers.get("User-Agent")
 
     restaurant = Restaurant.query.filter_by(slug=slug).first()
     if restaurant:
         view = ItemView(
-            item_id=item_id, slug=slug, ip_address=ip, restaurant_id=restaurant.id
+            item_id=item_id,
+            slug=slug,
+            ip_address=ip,
+            restaurant_id=restaurant.id,
+            user_agent=user_agent,
         )
         db.session.add(view)
         db.session.commit()
@@ -200,6 +205,7 @@ def track_item_view():
 @bp.route("/api/visita/<slug>", methods=["POST"])
 def registrar_visita(slug):
     ip = request.remote_addr
+    user_agent = request.headers.get("User-Agent")
     now = now_angola()
 
     restaurant = Restaurant.query.filter_by(slug=slug).first()
@@ -215,7 +221,11 @@ def registrar_visita(slug):
 
     if not ultima or (now - ultima.timestamp > timedelta(minutes=30)):
         visita = PageVisit(
-            slug=slug, ip_address=ip, restaurant_id=restaurant.id, timestamp=now
+            slug=slug,
+            ip_address=ip,
+            restaurant_id=restaurant.id,
+            timestamp=now,
+            user_agent=user_agent,
         )
         db.session.add(visita)
         db.session.commit()

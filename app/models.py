@@ -175,6 +175,7 @@ class PageVisit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     slug = db.Column(db.String(255), nullable=False)
     ip_address = db.Column(db.String(45), nullable=False)
+    user_agent = db.Column(db.String(300))
     timestamp = db.Column(db.DateTime, default=lambda: now_angola())
 
     restaurant_id = db.Column(
@@ -190,9 +191,21 @@ class ItemView(db.Model):
     item_id = db.Column(db.Integer, nullable=False)
     slug = db.Column(db.String(255), nullable=False)
     ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(300))
     timestamp = db.Column(db.DateTime, default=lambda: now_angola())
 
     restaurant_id = db.Column(
         db.Integer, db.ForeignKey("restaurant.id"), nullable=False
     )
     restaurant = db.relationship("Restaurant", backref="item_views")
+
+
+class DailyAnalytics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurant.id"))
+    date = db.Column(db.Date, nullable=False)
+
+    total_visits = db.Column(db.Integer, default=0)
+    total_item_views = db.Column(db.Integer, default=0)
+    total_reservations = db.Column(db.Integer, default=0)
+    total_people = db.Column(db.Integer, default=0)
