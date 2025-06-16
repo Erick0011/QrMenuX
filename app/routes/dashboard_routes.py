@@ -493,8 +493,11 @@ def reservations():
         )
 
     reservas = query.order_by(Reservation.start_time.desc()).all()
+    mesas = Table.query.filter_by(restaurant_id=current_user.restaurant.id).all()
 
-    return render_template("dashboard/reservations.html", reservas=reservas)
+    return render_template(
+        "dashboard/reservations.html", reservas=reservas, mesas=mesas
+    )
 
 
 @bp.route("/reservations/<int:id>/receipt", methods=["GET"])
@@ -533,3 +536,22 @@ def reservation_receipt(id):
         as_attachment=True,
         download_name=f"reserva_{reserva.id}.pdf",
     )
+
+
+@bp.route("/reservations/<int:id>/edit", methods=["POST"])
+@login_required
+def update_reservation(id):
+    r = Reservation.query.get_or_404(id)
+
+    r.customer_name = request.form["customer_name"]
+    r.customer_phone = request.form["customer_phone"]
+    r.start_time = datetime.strptime(request.form["start_time"], "%Y-%m-%dT%H:%M")
+    r.end_time = datetime.strptime(request.form["end_time"], "%Y-%m-%dT%H:%M")
+    r.people = int(request.form["people"])
+    r.table_id = int(request.form["table_id"])
+    r.observations = request.form["observations"]
+    r.status = request.form["status"]
+
+    db.session.commit()
+    flash("Reserva atualizada com sucesso!", "success")
+    return redirect(url_for("dashboard.reservations"))

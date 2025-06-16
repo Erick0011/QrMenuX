@@ -76,8 +76,107 @@
             <a href="{{ url_for('dashboard.reservation_receipt', id=r.id) }}" class="btn btn-sm btn-outline-secondary" title="Baixar comprovante">
               <i class="bi bi-download"></i>
             </a>
+            <button
+              class="btn btn-sm btn-outline-warning"
+              data-bs-toggle="modal"
+              data-bs-target="#modalEditar{{ r.id }}"
+              title="Editar Reserva"
+            >
+              <i class="bi bi-pencil"></i>
+            </button>
           </td>
         </tr>
+        <!-- Modal Editar Reserva -->
+        <div
+        class="modal fade"
+        id="modalEditar{{ r.id }}"
+        tabindex="-1"
+        aria-labelledby="modalEditarLabel{{ r.id }}"
+        aria-hidden="true"
+        >
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <form method="POST" action="{{ url_for('dashboard.update_reservation', id=r.id) }}">
+              <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalEditarLabel{{ r.id }}">
+                  Editar Reserva
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Fechar"
+                ></button>
+              </div>
+
+              <div class="modal-body">
+                
+                <div class="mb-3">
+                  <label class="form-label">Nome do Cliente</label>
+                  <input type="text" name="customer_name" class="form-control" value="{{ r.customer_name }}" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Telefone</label>
+                  <input type="text" name="customer_phone" class="form-control" value="{{ r.customer_phone }}" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Data e Hora Inicial</label>
+                  <input type="datetime-local" name="start_time" class="form-control" value="{{ r.start_time.strftime('%Y-%m-%dT%H:%M') }}" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Data e Hora Final</label>
+                  <input type="datetime-local" name="end_time" class="form-control" value="{{ r.end_time.strftime('%Y-%m-%dT%H:%M') }}" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Nº de Pessoas</label>
+                  <input type="number" name="people" class="form-control" value="{{ r.people }}" min="1" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Mesa</label>
+                  <select name="table_id" class="form-select">
+                    {% for mesa in mesas %}
+                    <option value="{{ mesa.id }}" {% if mesa.id == r.table_id %}selected{% endif %}>
+                      {{ mesa.name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Observações</label>
+                  <textarea name="observations" class="form-control" rows="3">{{ r.observations }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Status</label>
+                  <select name="status" class="form-select">
+                    {% for op in ['pendente', 'confirmada', 'cancelada', 'usada'] %}
+                    <option value="{{ op }}" {% if r.status == op %}selected{% endif %}>
+                      {{ op.capitalize() }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-success">
+                  <i class="bi bi-save"></i> Salvar
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        </div>
+
         <!-- Modal de Detalhes da Reserva -->
         <div
         class="modal fade"
