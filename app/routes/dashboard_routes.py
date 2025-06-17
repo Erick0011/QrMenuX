@@ -25,6 +25,7 @@ from app.models import (
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from flask import current_app
 import qrcode
+from fpdf import FPDF
 import io
 from io import BytesIO
 import base64
@@ -623,6 +624,44 @@ def reservations():
     )
 
 
+class ReceiptPDF(FPDF):
+    def header(self):
+        self.set_font("Arial", "B", 14)
+        self.set_text_color(0, 0, 0)
+        self.cell(0, 8, self.restaurant_name, ln=1, align="C")
+        self.set_font("Arial", "", 10)
+        self.cell(0, 6, self.restaurant_address, ln=1, align="C")
+        self.ln(5)
+        self.set_draw_color(180, 180, 180)
+        self.line(10, self.get_y(), 148 - 10, self.get_y())
+        self.ln(5)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Arial", "", 10)
+
+        self.set_text_color(0, 0, 0)
+        footer_text_1 = "QrMenuX · Powered by Next"
+        footer_text_2 = "Kode"
+
+        # Calcular largura total do rodapé
+        w1 = self.get_string_width(footer_text_1)
+        w2 = self.get_string_width(footer_text_2)
+        total_width = w1 + w2
+
+        # Posição X para centralizar
+        page_width = self.w - 20  # 10 de margem cada lado
+        start_x = (page_width - total_width) / 2 + 10
+
+        # Imprimir as duas partes com cores diferentes
+        self.set_x(start_x)
+        self.set_text_color(0, 0, 0)
+        self.cell(w1, 6, footer_text_1, ln=0)
+
+        self.set_text_color(230, 190, 60)  # amarelo
+        self.cell(w2, 6, footer_text_2, ln=1)
+
+
 @bp.route("/reservations/<int:id>/receipt", methods=["GET"])
 @login_required
 def reservation_receipt(id):
@@ -632,25 +671,61 @@ def reservation_receipt(id):
         flash("Acesso negado", "danger")
         return redirect(url_for("dashboard.reservations_dashboard"))
 
-    # Aqui poderia usar ReportLab, WeasyPrint ou fpdf. Para exemplo:
-    from fpdf import FPDF
-
-    pdf = FPDF()
+    restaurant = current_user.restaurant
+    pdf = ReceiptPDF(format="A5")
+    pdf.restaurant_name = restaurant.name
+    pdf.restaurant_address = restaurant.address or "Endereço não cadastrado"
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
 
-    pdf.cell(200, 10, txt="Comprovante de Reserva", ln=1, align="C")
-    pdf.ln(10)
-    pdf.cell(0, 10, txt=f"Nome: {reserva.customer_name}", ln=1)
-    pdf.cell(0, 10, txt=f"Telefone: {reserva.customer_phone}", ln=1)
-    pdf.cell(
-        0, 10, txt=f"Data e Hora: {reserva.start_time.strftime('%d/%m/%Y %H:%M')}", ln=1
-    )
-    pdf.cell(0, 10, txt=f"Nº Pessoas: {reserva.people}", ln=1)
-    pdf.cell(0, 10, txt=f"Código: {reserva.unique_code}", ln=1)
+    # Seção: Detalhes da Reserva
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Detalhes da Reserva", ln=1)
+    pdf.set_draw_color(200, 200, 200)
+    pdf.line(10, pdf.get_y(), 138, pdf.get_y())
+    pdf.ln(5)
 
+    pdf.set_font("Arial", "", 11)
+    pdf.cell(40, 8, "Nome:", 0, 0)
+    pdf.cell(0, 8, reserva.customer_name, 0, 1)
+
+    pdf.cell(40, 8, "Telefone:", 0, 0)
+    pdf.cell(0, 8, reserva.customer_phone, 0, 1)
+
+    pdf.cell(40, 8, "Data e Hora:", 0, 0)
+    pdf.cell(0, 8, reserva.start_time.strftime("%d/%m/%Y %H:%M"), 0, 1)
+
+    pdf.cell(40, 8, "Pessoas:", 0, 0)
+    pdf.cell(0, 8, str(reserva.people), 0, 1)
+
+    pdf.cell(40, 8, "Código:", 0, 0)
+    pdf.set_font("Arial", "B", 11)
+    pdf.cell(0, 8, reserva.unique_code, 0, 1)
+
+    # Separador
+    pdf.ln(5)
+    pdf.set_draw_color(160, 160, 160)
+    pdf.line(10, pdf.get_y(), 138, pdf.get_y())
+    pdf.ln(5)
+
+    # Seção: QR Code
+    pdf.set_font("Arial", "", 11)
+    pdf.cell(0, 8, "Aponte a câmera para este QR Code:", ln=1)
+
+    # Gerar QR Code da reserva
+    qr = qrcode.make(f"{reserva.unique_code}")
+    qr_buffer = BytesIO()
+    qr.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+    img_path = "/tmp/temp_qr.png"
+    with open(img_path, "wb") as f:
+        f.write(qr_buffer.getvalue())
+
+    pdf.image(img_path, x=(148 - 50) / 2, w=50)  # centralizar na A5
+
+    # Gerar PDF em memória
     pdf_output = BytesIO()
-    pdf.output(pdf_output)
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+    pdf_output.write(pdf_bytes)
     pdf_output.seek(0)
 
     return send_file(

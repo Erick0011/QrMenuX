@@ -11,10 +11,17 @@ from app.models import (
 from datetime import datetime, timedelta
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from app.utils.now_angola import now_angola
+from app.routes import auth_routes
 from app import db
 
 
 bp = Blueprint("public", __name__, url_prefix="/")
+
+
+@bp.route("/")
+def index():
+
+    return redirect(url_for("auth.login"))
 
 
 @bp.route("/<slug>")
