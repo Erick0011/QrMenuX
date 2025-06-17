@@ -1,33 +1,64 @@
-{% extends "dashboard/dashboard_base.html" %}
-{% block title %}QR Code do Cardápio{% endblock %}
+{% extends "dashboard/dashboard_base.html" %} {% block title %}QR Code do
+Cardápio{% endblock %} {% block content %}
+<div class="mx-auto text-center" style="max-width: 600px">
+  <h3 class="mb-4 fw-bold">QR Code do Cardápio</h3>
 
-{% block content %}
-<div class="mx-auto text-center" style="max-width: 600px;">
-  <h3 class="mb-3">QR Code do Cardápio</h3>
-
-  <p class="mb-1 text-success">Link do seu cardápio:</p>
-  <div class="input-group mb-4">
-    <input type="text" id="menu-link" class="form-control" value="{{ link }}" readonly>
-    <button class="btn btn-outline-success" onclick="copyToClipboard()">
-      <i class="bi bi-clipboard"></i> Copiar
-    </button>
+  <div class="mb-3">
+    <p class="mb-1 text-success fw-semibold">Link do seu cardápio:</p>
+    <div class="input-group">
+      <input
+        type="text"
+        id="menu-link"
+        class="form-control"
+        value="{{ link }}"
+        readonly
+      />
+      <button class="btn btn-outline-success" onclick="copyToClipboard()">
+        <i class="bi bi-clipboard"></i> Copiar
+      </button>
+    </div>
   </div>
 
   <p class="mb-2">Aponte a câmera do celular para acessar:</p>
-  <img src="data:image/png;base64,{{ qr_data }}" alt="QR Code do Cardápio" class="img-fluid mb-4" style="max-width: 300px;">
+  <img
+    id="qr-image"
+    src="data:image/png;base64,{{ qr_data }}"
+    alt="QR Code do Cardápio"
+    class="img-fluid rounded shadow-sm mb-3"
+    style="max-width: 300px"
+  />
 
-  <a href="{{ link }}" target="_blank" class="btn btn-success">
-    <i class="bi bi-box-arrow-up-right"></i> Abrir Cardápio
-  </a>
+  <div class="d-grid gap-2 d-md-flex justify-content-center">
+    <a href="{{ link }}" target="_blank" class="btn btn-success">
+      <i class="bi bi-box-arrow-up-right"></i> Abrir Cardápio
+    </a>
+    <a
+      id="download-btn"
+      download="qrcode.png"
+      class="btn btn-outline-secondary"
+    >
+      <i class="bi bi-download"></i> Baixar QR Code
+    </a>
+  </div>
 </div>
 
 <script>
   function copyToClipboard() {
-    const copyText = document.getElementById("menu-link");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(copyText.value);
-    alert("Link copiado!");
+    const input = document.getElementById("menu-link");
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+      alert("Link copiado!");
+    });
   }
+
+  // Converter a imagem base64 em download
+  window.onload = () => {
+    const qrImg = document.getElementById("qr-image");
+    const downloadBtn = document.getElementById("download-btn");
+
+    // Pega a imagem base64 diretamente do src
+    downloadBtn.href = qrImg.src;
+  };
 </script>
 {% endblock %}

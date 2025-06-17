@@ -8,6 +8,7 @@ from flask import (
     send_file,
 )
 from flask_login import login_required, current_user
+from PIL import Image, ImageDraw, ImageFont
 import os
 from werkzeug.utils import secure_filename
 from app.models import (
@@ -410,10 +411,42 @@ def qrcode_page():
     restaurant = current_user.restaurant
     link = url_for("public.menu", slug=restaurant.slug, _external=True)
 
-    # Gerar QR Code em memória
-    qr_img = qrcode.make(link)
+    # Gerar QR code básico
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(link)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+
+    # Criar nova imagem com espaço para texto
+    width, height = qr_img.size
+    new_height = height + 80
+    result_img = Image.new("RGB", (width, new_height), "white")
+    result_img.paste(qr_img, (0, 0))
+
+    # Escrever textos abaixo
+    draw = ImageDraw.Draw(result_img)
+
+    try:
+        # Você pode substituir essa fonte por uma que tenha no seu sistema
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 16)
+    except IOError:
+        font = ImageFont.load_default()
+
+    text1 = f"{restaurant.name}"
+    text2 = "Criado com ❤️ pela NextKode"
+
+    # Centralizar textos
+    bbox1 = draw.textbbox((0, 0), text1, font=font)
+    text1_width = bbox1[2] - bbox1[0]
+
+    bbox2 = draw.textbbox((0, 0), text2, font=font)
+    text2_width = bbox2[2] - bbox2[0]
+
+    draw.text(((width - text1_width) / 2, height + 5), text1, fill="black", font=font)
+    draw.text(((width - text2_width) / 2, height + 30), text2, fill="gray", font=font)
+    # Converter para base64
     buf = io.BytesIO()
-    qr_img.save(buf, format="PNG")
+    result_img.save(buf, format="PNG")
     qr_data = base64.b64encode(buf.getvalue()).decode("utf-8")
 
     return render_template(
