@@ -116,13 +116,6 @@ def index():
     )
 
 
-@bp.route("/")
-@login_required
-def indexa():
-    # Página inicial do painel
-    return render_template("dashboard/index.html")
-
-
 @bp.route("/subscription", methods=["GET"])
 @login_required
 def subscription():
@@ -146,9 +139,15 @@ def subscription():
 def list_categories():
     restaurant = current_user.restaurant
     if request.method == "POST":
-        name = request.form.get("name")
-        if name:
-            new_category = Category(name=name.strip(), restaurant=restaurant)
+        name = request.form.get("name", "").strip()
+        # Validação: nome não pode ser vazio
+        if not name:
+            flash("O nome da categoria não pode estar vazio.", "danger")
+        # Validação: nome não pode ser duplicado para o restaurante
+        elif Category.query.filter_by(name=name, restaurant=restaurant).first():
+            flash("Já existe uma categoria com esse nome.", "warning")
+        else:
+            new_category = Category(name=name, restaurant=restaurant)
             db.session.add(new_category)
             db.session.commit()
             flash("Categoria criada com sucesso!", "success")

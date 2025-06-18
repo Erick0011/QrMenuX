@@ -4,6 +4,8 @@
   <h2 class="mb-4 text-success">Painel de Reservas</h2>
 
   <form method="get" class="row g-3 mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
     <div class="col-md-3">
       <input type="date" name="date" class="form-control" value="{{ request.args.get('date', '') }}">
     </div>
@@ -57,6 +59,7 @@
               <i class="bi bi-eye"></i> 
             </button>
             <form method="post" class="d-inline">
+              {{ csrf_token() }}
               <input type="hidden" name="reservation_id" value="{{ r.id }}">
               <input type="hidden" name="action" value="set_status">
               <input type="hidden" name="new_status" value="usada">
@@ -66,6 +69,7 @@
             </form>
 
             <form method="post" class="d-inline">
+              {{ csrf_token() }}
               <input type="hidden" name="reservation_id" value="{{ r.id }}">
               <input type="hidden" name="action" value="delete">
               <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Confirmar remoção?')" title="Excluir">
@@ -97,6 +101,8 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">
             <form method="POST" action="{{ url_for('dashboard.update_reservation', id=r.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
               <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="modalEditarLabel{{ r.id }}">
                   Editar Reserva

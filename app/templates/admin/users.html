@@ -1,89 +1,120 @@
-{% extends 'admin/base.html' %}
-
-{% block title %}Gestão de Usuários{% endblock %}
-
-{% block content %}
+{% extends 'admin/base.html' %} {% block title %}Gestão de Usuários{% endblock
+%} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Gestão de Usuários</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
-        <i class="bi bi-plus-lg"></i> Criar Usuário
-    </button>
+  <h2>Gestão de Usuários</h2>
+  <button
+    class="btn btn-success"
+    data-bs-toggle="modal"
+    data-bs-target="#createUserModal"
+  >
+    <i class="bi bi-plus-lg"></i> Criar Usuário
+  </button>
 </div>
 
 <form method="get" class="mb-3">
-    <input type="search" name="search" value="{{ search }}" placeholder="Pesquisar por email ou restaurante" class="form-control" />
+  {{ csrf_token() }}
+  <input
+    type="search"
+    name="search"
+    value="{{ search }}"
+    placeholder="Pesquisar por email ou restaurante"
+    class="form-control"
+  />
 </form>
 
 <table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Restaurante</th>
-            <th>Whatsapp</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
+  <thead>
+    <tr>
+      <th>Restaurante</th>
+      <th>Whatsapp</th>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for user in users %}
-        <tr>
+    <tr>
+      <td>{{ user.restaurant.name if user.restaurant else '---' }}</td>
+      <td>{{ user.restaurant.phone }}</td>
+      <td>{{ user.restaurant.email }}</td>
+      <td>
+        {% if user.restaurant and user.restaurant.is_active %}
+        <span class="badge bg-success">Ativo</span>
+        {% else %}
+        <span class="badge bg-secondary">Inativo</span>
+        {% endif %}
+      </td>
+      <td>
+        <a
+          href="#"
+          class="btn btn-sm btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#editUserModal{{ user.id }}"
+        >
+          <i class="bi bi-pencil"></i> Editar
+        </a>
 
-            <td>{{ user.restaurant.name if user.restaurant else '---' }}</td>
-            <td>{{ user.restaurant.phone }}</td>
-            <td>{{ user.restaurant.email }}</td>
-            <td>
-                {% if user.restaurant and user.restaurant.is_active %}
-                    <span class="badge bg-success">Ativo</span>
-                {% else %}
-                    <span class="badge bg-secondary">Inativo</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">
-                    <i class="bi bi-pencil"></i> Editar
-                </a>
-
-                <a href="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" class="btn btn-sm btn-warning">
-                    {% if user.restaurant and user.restaurant.is_active %}
-                        <i class="bi bi-slash-circle"></i> Desativar
-                    {% else %}
-                        <i class="bi bi-check-circle"></i> Ativar
-                    {% endif %}
-                </a>
-
-
-
-            </td>
-        </tr>
+        <a
+          href="{{ url_for('admin.toggle_user_status', user_id=user.id) }}"
+          class="btn btn-sm btn-warning"
+        >
+          {% if user.restaurant and user.restaurant.is_active %}
+          <i class="bi bi-slash-circle"></i> Desativar {% else %}
+          <i class="bi bi-check-circle"></i> Ativar {% endif %}
+        </a>
+      </td>
+    </tr>
     {% else %}
-        <tr><td colspan="4">Nenhum usuário encontrado.</td></tr>
+    <tr>
+      <td colspan="4">Nenhum usuário encontrado.</td>
+    </tr>
     {% endfor %}
-    </tbody>
+  </tbody>
 </table>
 <!-- Modal Criar Usuário -->
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="createUserModal"
+  tabindex="-1"
+  aria-labelledby="createUserModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-lg">
     <form method="POST" action="{{ url_for('admin.create_user') }}">
+      {{ csrf_token() }}
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="createUserModalLabel">Criar Usuário</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Fechar"
+          ></button>
         </div>
         <div class="modal-body">
-
-
-
           <div class="row">
             <!-- Dados do Usuário -->
             <div class="col-md-6">
               <h6>Usuário</h6>
               <div class="mb-3">
                 <label>Email</label>
-                <input type="email" name="user_email" class="form-control" required>
+                <input
+                  type="email"
+                  name="user_email"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Senha</label>
-                <input type="password" name="user_password" class="form-control" required>
+                <input
+                  type="password"
+                  name="user_password"
+                  class="form-control"
+                  required
+                />
               </div>
             </div>
 
@@ -92,15 +123,29 @@
               <h6>Restaurante</h6>
               <div class="mb-3">
                 <label>Nome</label>
-                <input type="text" name="restaurant_name" class="form-control" required>
+                <input
+                  type="text"
+                  name="restaurant_name"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Email</label>
-                <input type="email" name="restaurant_email" class="form-control" required>
+                <input
+                  type="email"
+                  name="restaurant_email"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Telefone (WhatsApp)</label>
-                <input type="text" name="restaurant_phone" class="form-control">
+                <input
+                  type="text"
+                  name="restaurant_phone"
+                  class="form-control"
+                />
               </div>
             </div>
           </div>
@@ -110,22 +155,57 @@
             <h6>Subscrição</h6>
             <label>Data de Fim</label>
             <div class="input-group mb-2">
-              <input type="date" id="subscription_end_date" name="subscription_end_date" class="form-control" required>
+              <input
+                type="date"
+                id="subscription_end_date"
+                name="subscription_end_date"
+                class="form-control"
+                required
+              />
             </div>
 
             <div class="btn-group mb-3" role="group">
-              <button type="button" class="btn btn-outline-secondary" onclick="setSubscriptionDays(7)">7 dias</button>
-              <button type="button" class="btn btn-outline-secondary" onclick="setSubscriptionDays(30)">1 mês</button>
-              <button type="button" class="btn btn-outline-secondary" onclick="setSubscriptionDays(90)">3 meses</button>
-              <button type="button" class="btn btn-outline-secondary" onclick="setSubscriptionDays(180)">6 meses</button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="setSubscriptionDays(7)"
+              >
+                7 dias
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="setSubscriptionDays(30)"
+              >
+                1 mês
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="setSubscriptionDays(90)"
+              >
+                3 meses
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="setSubscriptionDays(180)"
+              >
+                6 meses
+              </button>
             </div>
-
           </div>
         </div>
 
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Criar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </form>
@@ -133,13 +213,29 @@
 </div>
 <!-- Modal Editar Usuário -->
 {% for user in users %}
-<div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1" aria-labelledby="editUserModalLabel{{ user.id }}" aria-hidden="true">
+<div
+  class="modal fade"
+  id="editUserModal{{ user.id }}"
+  tabindex="-1"
+  aria-labelledby="editUserModalLabel{{ user.id }}"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-lg">
-    <form method="POST" action="{{ url_for('admin.update_user', user_id=user.id) }}">
+    <form
+      method="POST"
+      action="{{ url_for('admin.update_user', user_id=user.id) }}"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Editar Usuário</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Fechar"
+          ></button>
         </div>
         <div class="modal-body">
           <div class="row">
@@ -148,11 +244,21 @@
               <h6>Usuário</h6>
               <div class="mb-3">
                 <label>Email</label>
-                <input type="email" name="user_email" class="form-control" value="{{ user.email }}" required>
+                <input
+                  type="email"
+                  name="user_email"
+                  class="form-control"
+                  value="{{ user.email }}"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Nova Senha (deixe em branco para não alterar)</label>
-                <input type="password" name="user_password" class="form-control">
+                <input
+                  type="password"
+                  name="user_password"
+                  class="form-control"
+                />
               </div>
             </div>
 
@@ -161,15 +267,32 @@
               <h6>Restaurante</h6>
               <div class="mb-3">
                 <label>Nome</label>
-                <input type="text" name="restaurant_name" class="form-control" value="{{ user.restaurant.name }}" required>
+                <input
+                  type="text"
+                  name="restaurant_name"
+                  class="form-control"
+                  value="{{ user.restaurant.name }}"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Email</label>
-                <input type="email" name="restaurant_email" class="form-control" value="{{ user.restaurant.email }}" required>
+                <input
+                  type="email"
+                  name="restaurant_email"
+                  class="form-control"
+                  value="{{ user.restaurant.email }}"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label>Telefone</label>
-                <input type="text" name="restaurant_phone" class="form-control" value="{{ user.restaurant.phone }}">
+                <input
+                  type="text"
+                  name="restaurant_phone"
+                  class="form-control"
+                  value="{{ user.restaurant.phone }}"
+                />
               </div>
             </div>
           </div>
@@ -178,19 +301,37 @@
           <div class="mb-3 mt-3">
             <h6>Subscrição</h6>
             <p>
-              Início: {{ user.restaurant.subscription.start_date.strftime('%d/%m/%Y') if user.restaurant.subscription else 'N/A' }}<br>
-              Fim: {{ user.restaurant.subscription.end_date.strftime('%d/%m/%Y') if user.restaurant.subscription else 'N/A' }}
+              Início: {{
+              user.restaurant.subscription.start_date.strftime('%d/%m/%Y') if
+              user.restaurant.subscription else 'N/A' }}<br />
+              Fim: {{ user.restaurant.subscription.end_date.strftime('%d/%m/%Y')
+              if user.restaurant.subscription else 'N/A' }}
             </p>
           </div>
         </div>
 
         <div class="modal-footer">
-            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
-                <button class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja eliminar este usuário?');">
-                    Excluir</button>
-            </form>
+          <form
+            action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+            method="POST"
+            onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');"
+          >
+            {{ csrf_token() }}
+            <button
+              class="btn btn-danger btn-sm"
+              onclick="return confirm('Tem certeza que deseja eliminar este usuário?');"
+            >
+              Excluir
+            </button>
+          </form>
           <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </form>
@@ -198,17 +339,17 @@
 </div>
 {% endfor %}
 <script>
-function setSubscriptionDays(days) {
-    const input = document.getElementById('subscription_end_date');
+  function setSubscriptionDays(days) {
+    const input = document.getElementById("subscription_end_date");
     const today = new Date();
     today.setDate(today.getDate() + days);
 
     const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
 
     input.value = `${yyyy}-${mm}-${dd}`;
-}
+  }
 </script>
 
 {% endblock %}

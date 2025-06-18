@@ -45,7 +45,7 @@
   </style>
 </head>
 <body>
-
+  {% include "modal.html" %}
   <div class="container my-5">
     <div class="row justify-content-center">      
       <div class="col-lg-6">
@@ -61,6 +61,7 @@
           </h3>
           <!-- Formulário de seleção -->
           <form method="get" action="{{ url_for('public.reservation', slug=slug) }}">
+            {{ csrf_token() }}
             <div class="mb-3">
               <label for="date" class="form-label">
                 <i class="bi bi-calendar-event me-1"></i>Data:
@@ -108,6 +109,7 @@
           <!-- Formulário de reserva -->
           {% if data_reserva %}
           <form method="post" id="reserva-form" class="mt-4" style="display: none;">
+            {{ csrf_token() }}
             <input type="hidden" name="start_time" id="start_time" />
             <input type="hidden" name="end_time" id="end_time" />
             <input type="hidden" name="table_id" id="table_id" />

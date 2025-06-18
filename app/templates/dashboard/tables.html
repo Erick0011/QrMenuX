@@ -120,6 +120,8 @@ endblock%} {% block content %}
       action="{{ url_for('dashboard.list_tables') }}"
       class="modal-content"
     >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
       <div class="modal-header">
         <h5 class="modal-title" id="createTableModalLabel">Nova Mesa</h5>
         <button
