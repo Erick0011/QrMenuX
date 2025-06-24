@@ -1,2 +1,6 @@
 .env
 .flaskenv
+.comandos_flask.md
+seed_dynamic.py
+seed_rest_1.py
+seed.py
