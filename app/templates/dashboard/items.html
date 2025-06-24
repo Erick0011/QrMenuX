@@ -38,7 +38,7 @@
       type="submit"
       class="btn {% if category.id == selected_category.id %}btn-success{% else %}btn-outline-success{% endif %}"
     >
-      {{ category.name }}
+      {{ category.name|e }}
     </button>
   </form>
   {% endfor %}
@@ -58,7 +58,7 @@
       {% endif %}
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">{{ item.name }}</h5>
-        <p class="card-text truncate">{{ item.description }}</p>
+        <p class="card-text truncate">{{ item.description|e }}</p>
         <p class="card-text mb-2">
           <strong>Preço:</strong> Kz {{ item.price }}
         </p>
@@ -106,7 +106,8 @@
         method="POST"
         action="{{ url_for('dashboard.edit_item', item_id=item.id) }}"
         enctype="multipart/form-data"
-        class="modal-content"
+        class="modal-content needs-validation"
+        novalidate
       >
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -135,9 +136,16 @@
               name="name"
               id="editName{{ item.id }}"
               class="form-control"
-              value="{{ item.name }}"
+              value="{{ item.name|e }}"
               required
+              minlength="2"
+              maxlength="100"
+              pattern="^[\w\sÀ-ÿ-]+$"
             />
+            <div class="invalid-feedback">
+              Informe um nome válido (mínimo 2 caracteres, sem símbolos
+              especiais).
+            </div>
           </div>
           <div class="mb-3">
             <label for="editDescription{{ item.id }}" class="form-label"
@@ -148,9 +156,14 @@
               id="editDescription{{ item.id }}"
               class="form-control"
               rows="3"
+              maxlength="500"
+              required
             >
-{{ item.description }}</textarea
+{{ item.description|e }}</textarea
             >
+            <div class="invalid-feedback">
+              Informe uma descrição (máximo 500 caracteres).
+            </div>
           </div>
           <div class="mb-3">
             <label for="editPrice{{ item.id }}" class="form-label">Preço</label>
@@ -161,8 +174,12 @@
               class="form-control"
               value="{{ item.price }}"
               step="0.01"
+              min="0.01"
               required
             />
+            <div class="invalid-feedback">
+              Informe um preço válido (maior que zero).
+            </div>
           </div>
           <div class="mb-3">
             <label for="editImage{{ item.id }}" class="form-label"
@@ -173,7 +190,9 @@
               name="image"
               id="editImage{{ item.id }}"
               class="form-control"
+              accept="image/*"
             />
+            <div class="invalid-feedback">Selecione uma imagem válida.</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -205,7 +224,8 @@
       method="POST"
       action="{{ url_for('dashboard.create_item') }}"
       enctype="multipart/form-data"
-      class="modal-content"
+      class="modal-content needs-validation"
+      novalidate
     >
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -227,7 +247,15 @@
             name="name"
             id="itemName"
             required
+            minlength="2"
+            maxlength="100"
+            pattern="^[\w\sÀ-ÿ-]+$"
+            placeholder="Nome do prato"
           />
+          <div class="invalid-feedback">
+            Informe um nome válido (mínimo 2 caracteres, sem símbolos
+            especiais).
+          </div>
         </div>
         <div class="mb-3">
           <label for="itemDescription" class="form-label">Descrição</label>
@@ -236,7 +264,12 @@
             name="description"
             id="itemDescription"
             rows="3"
+            maxlength="500"
+            required
           ></textarea>
+          <div class="invalid-feedback">
+            Informe uma descrição (máximo 500 caracteres).
+          </div>
         </div>
         <div class="mb-3">
           <label for="itemPrice" class="form-label">Preço</label>
@@ -246,8 +279,12 @@
             name="price"
             id="itemPrice"
             step="0.01"
+            min="0.01"
             required
           />
+          <div class="invalid-feedback">
+            Informe um preço válido (maior que zero).
+          </div>
         </div>
         <div class="mb-3">
           <label for="itemImage" class="form-label">Imagem</label>
@@ -256,8 +293,10 @@
             class="form-control"
             name="image"
             id="itemImage"
+            accept="image/*"
             required
           />
+          <div class="invalid-feedback">Selecione uma imagem válida.</div>
         </div>
         <input
           type="hidden"
@@ -274,4 +313,24 @@
     </form>
   </div>
 </div>
+<script>
+  // Bootstrap 5 validation
+  (function () {
+    "use strict";
+    var forms = document.querySelectorAll(".needs-validation");
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+</script>
 {% endblock %}

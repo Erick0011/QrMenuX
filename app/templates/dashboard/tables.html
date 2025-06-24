@@ -57,6 +57,8 @@ endblock%} {% block content %}
           action="{{ url_for('dashboard.edit_table', table_id=table.id) }}"
           class="modal-content"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
           <div class="modal-header">
             <h5 class="modal-title" id="editTableModalLabel{{ table.id }}">
               Editar Mesa
@@ -157,3 +159,52 @@ endblock%} {% block content %}
   </div>
 </div>
 {% endblock %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Create Table Modal validation
+    const createForm = document.querySelector("#createTableModal form");
+    if (createForm) {
+      createForm.addEventListener("submit", function (e) {
+        const name = createForm.querySelector('input[name="name"]');
+        const capacity = createForm.querySelector('input[name="capacity"]');
+        if (!name.value.trim()) {
+          alert("O nome da mesa é obrigatório.");
+          name.focus();
+          e.preventDefault();
+          return false;
+        }
+        if (!capacity.value || parseInt(capacity.value) < 1) {
+          alert("A capacidade deve ser pelo menos 1.");
+          capacity.focus();
+          e.preventDefault();
+          return false;
+        }
+      });
+    }
+
+    // Edit Table Modal validations
+    document
+      .querySelectorAll('[id^="editTableModal"]')
+      .forEach(function (modal) {
+        const form = modal.querySelector("form");
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            const name = form.querySelector('input[name="name"]');
+            const capacity = form.querySelector('input[name="capacity"]');
+            if (!name.value.trim()) {
+              alert("O nome da mesa é obrigatório.");
+              name.focus();
+              e.preventDefault();
+              return false;
+            }
+            if (!capacity.value || parseInt(capacity.value) < 1) {
+              alert("A capacidade deve ser pelo menos 1.");
+              capacity.focus();
+              e.preventDefault();
+              return false;
+            }
+          });
+        }
+      });
+  });
+</script>

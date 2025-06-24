@@ -2,7 +2,7 @@
 %} {% block content %}
 <div class="mx-auto" style="max-width: 600px">
   <h3>Editar Perfil</h3>
-  <form method="POST">
+  <form method="POST" id="profileForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <hr />
@@ -16,10 +16,19 @@
         value="{{ user.email }}"
         required
       />
+      <div class="invalid-feedback">Informe um email válido.</div>
     </div>
     <div class="mb-3">
       <label>Nova senha (deixe em branco para manter)</label>
-      <input type="password" name="user_password" class="form-control" />
+      <input
+        type="password"
+        name="user_password"
+        class="form-control"
+        minlength="6"
+      />
+      <div class="invalid-feedback">
+        A senha deve ter pelo menos 6 caracteres.
+      </div>
     </div>
 
     <hr />
@@ -49,7 +58,9 @@
         name="restaurant_email"
         class="form-control"
         value="{{ restaurant.email }}"
+        required
       />
+      <div class="invalid-feedback">Informe um email válido.</div>
     </div>
     <div class="mb-3">
       <label>Telefone / WhatsApp</label>
@@ -58,7 +69,12 @@
         name="restaurant_phone"
         class="form-control"
         value="{{ restaurant.phone }}"
+        pattern="^\+?\d{8,15}$"
+        required
       />
+      <div class="invalid-feedback">
+        Informe um telefone válido. Com o codigo do país (Ex: +244 9XX XXX XXX)
+      </div>
     </div>
     <div class="mb-3">
       <label>Endereço</label>
@@ -69,7 +85,9 @@
         value="{{ restaurant.address or '' }}"
         placeholder="Ex: Rua Principal, 123, Bairro, Cidade"
         required
+        minlength="5"
       />
+      <div class="invalid-feedback">Informe um endereço válido.</div>
     </div>
     <div class="mb-3">
       <label>Cor do tema</label>
@@ -78,13 +96,24 @@
         name="theme_color"
         class="form-control form-control-color"
         value="{{ restaurant.theme_color }}"
+        required
       />
+      <div class="invalid-feedback">Escolha uma cor.</div>
     </div>
     <div class="mb-3">
       <label>Descrição</label>
-      <textarea name="restaurant_description" class="form-control" rows="3">
+      <textarea
+        name="restaurant_description"
+        class="form-control"
+        rows="3"
+        required
+        minlength="10"
+      >
 {{ restaurant.description }}</textarea
       >
+      <div class="invalid-feedback">
+        A descrição deve ter pelo menos 10 caracteres.
+      </div>
     </div>
     <button type="submit" class="btn btn-success">
       <i class="bi bi-check-circle"></i> Salvar alterações
@@ -92,4 +121,24 @@
   </form>
 </div>
 
+<script>
+  // Bootstrap 5 validation
+  (function () {
+    "use strict";
+    var forms = document.querySelectorAll("#profileForm");
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+</script>
 {% endblock %}

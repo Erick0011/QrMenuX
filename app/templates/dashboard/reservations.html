@@ -100,88 +100,103 @@
         >
         <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">
-            <form method="POST" action="{{ url_for('dashboard.update_reservation', id=r.id) }}">
+            <form method="POST" action="{{ url_for('dashboard.update_reservation', id=r.id) }}" onsubmit="return validateReservaForm{{ r.id }}();">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
               <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title" id="modalEditarLabel{{ r.id }}">
-                  Editar Reserva
-                </h5>
-                <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Fechar"
-                ></button>
+          <h5 class="modal-title" id="modalEditarLabel{{ r.id }}">
+            Editar Reserva
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Fechar"
+          ></button>
               </div>
 
               <div class="modal-body">
-                
-                <div class="mb-3">
-                  <label class="form-label">Nome do Cliente</label>
-                  <input type="text" name="customer_name" class="form-control" value="{{ r.customer_name }}" required>
-                </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Nome do Cliente</label>
+            <input type="text" name="customer_name" class="form-control" value="{{ r.customer_name }}" required minlength="2" maxlength="100">
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Telefone</label>
-                  <input type="text" name="customer_phone" class="form-control" value="{{ r.customer_phone }}" required>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Telefone</label>
+            <input type="text" name="customer_phone" class="form-control" value="{{ r.customer_phone }}" required pattern="^\+?\d{8,15}$" title="Digite um telefone válido">
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Data e Hora Inicial</label>
-                  <input type="datetime-local" name="start_time" class="form-control" value="{{ r.start_time.strftime('%Y-%m-%dT%H:%M') }}" required>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Data e Hora Inicial</label>
+            <input type="datetime-local" name="start_time" class="form-control" value="{{ r.start_time.strftime('%Y-%m-%dT%H:%M') }}" required>
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Data e Hora Final</label>
-                  <input type="datetime-local" name="end_time" class="form-control" value="{{ r.end_time.strftime('%Y-%m-%dT%H:%M') }}" required>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Data e Hora Final</label>
+            <input type="datetime-local" name="end_time" class="form-control" value="{{ r.end_time.strftime('%Y-%m-%dT%H:%M') }}" required>
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Nº de Pessoas</label>
-                  <input type="number" name="people" class="form-control" value="{{ r.people }}" min="1" required>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Nº de Pessoas</label>
+            <input type="number" name="people" class="form-control" value="{{ r.people }}" min="1" max="100" required>
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Mesa</label>
-                  <select name="table_id" class="form-select">
-                    {% for mesa in mesas %}
-                    <option value="{{ mesa.id }}" {% if mesa.id == r.table_id %}selected{% endif %}>
-                      {{ mesa.name }}
-                    </option>
-                    {% endfor %}
-                  </select>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Mesa</label>
+            <select name="table_id" class="form-select" required>
+              {% for mesa in mesas %}
+              <option value="{{ mesa.id }}" {% if mesa.id == r.table_id %}selected{% endif %}>
+                {{ mesa.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Observações</label>
-                  <textarea name="observations" class="form-control" rows="3">{{ r.observations }}</textarea>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Observações</label>
+            <textarea name="observations" class="form-control" rows="3" maxlength="500">{{ r.observations }}</textarea>
+          </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <select name="status" class="form-select">
-                    {% for op in ['pendente', 'confirmada', 'cancelada', 'usada'] %}
-                    <option value="{{ op }}" {% if r.status == op %}selected{% endif %}>
-                      {{ op.capitalize() }}
-                    </option>
-                    {% endfor %}
-                  </select>
-                </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select" required>
+              {% for op in ['pendente', 'confirmada', 'cancelada', 'usada'] %}
+              <option value="{{ op }}" {% if r.status == op %}selected{% endif %}>
+                {{ op.capitalize() }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div id="reservaError{{ r.id }}" class="text-danger small"></div>
               </div>
 
               <div class="modal-footer">
-                <button type="submit" class="btn btn-success">
-                  <i class="bi bi-save"></i> Salvar
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                  Cancelar
-                </button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-save"></i> Salvar
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
               </div>
             </form>
           </div>
         </div>
         </div>
+        <script>
+        function validateReservaForm{{ r.id }}() {
+          var form = document.querySelector('#modalEditar{{ r.id }} form');
+          var start = form.start_time.value;
+          var end = form.end_time.value;
+          var errorDiv = document.getElementById('reservaError{{ r.id }}');
+          errorDiv.textContent = '';
+          if (start && end && start >= end) {
+            errorDiv.textContent = 'A data/hora final deve ser após a inicial.';
+            return false;
+          }
+          return true;
+        }
+        </script>
 
         <!-- Modal de Detalhes da Reserva -->
         <div
