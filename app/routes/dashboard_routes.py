@@ -27,6 +27,7 @@ from flask import current_app
 import qrcode
 from fpdf import FPDF
 import io
+from PIL import Image
 from io import BytesIO
 import base64
 from datetime import time, datetime, timedelta
@@ -242,6 +243,9 @@ def list_items():
 @bp.route("/items/create", methods=["POST"])
 @login_required
 def create_item():
+    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+    MAX_SIZE_MB = 5
+
     name = request.form.get("name")
     description = request.form.get("description")
     price = request.form.get("price", type=float)
@@ -255,10 +259,24 @@ def create_item():
 
     filename = None
     if image and name:
-        ext = os.path.splitext(image.filename)[1]
-        safe_image_name = secure_filename(name.lower().replace(" ", "_")) + ext
+        ext = os.path.splitext(image.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            flash("Formato de imagem não permitido. Use JPG ou PNG.", "danger")
+            return redirect(url_for("dashboard.list_items"))
 
+        # Verifica tamanho (em memória)
+        image.seek(0, os.SEEK_END)
+        image_size = image.tell()
+        image.seek(0)
+
+        if image_size > MAX_SIZE_MB * 1024 * 1024:
+            flash("Imagem muito grande! Máximo permitido: 5MB.", "danger")
+            return redirect(url_for("dashboard.list_items"))
+
+        # Define nome seguro
+        safe_image_name = secure_filename(name.lower().replace(" ", "_")) + ext
         restaurant_slug = current_user.restaurant.slug
+
         relative_path = os.path.join(restaurant_slug, safe_image_name).replace(
             "\\", "/"
         )
@@ -266,8 +284,18 @@ def create_item():
             current_app.root_path, "static", "uploads", restaurant_slug
         )
         os.makedirs(absolute_folder, exist_ok=True)
+        absolute_path = os.path.join(absolute_folder, safe_image_name)
 
-        image.save(os.path.join(absolute_folder, safe_image_name))
+        # Comprime e salva com Pillow
+        try:
+            img = Image.open(image)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")  # evita erro ao salvar JPG
+            img.save(absolute_path, format="JPEG", quality=70, optimize=True)
+        except Exception as e:
+            flash(f"Erro ao processar imagem: {e}", "danger")
+            return redirect(url_for("dashboard.list_items"))
+
         filename = relative_path
 
     new_item = MenuItem(
@@ -287,6 +315,9 @@ def create_item():
 @bp.route("/items/edit/<int:item_id>", methods=["POST", "GET"])
 @login_required
 def edit_item(item_id):
+    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+    MAX_SIZE_MB = 5
+
     item = MenuItem.query.get_or_404(item_id)
     restaurant = current_user.restaurant
 
@@ -294,7 +325,7 @@ def edit_item(item_id):
         flash("Acesso negado.", "danger")
         return redirect(url_for("dashboard.list_items"))
 
-    name = request.form.get("name").strip()
+    name = request.form.get("name", "").strip()
     description = request.form.get("description")
     price = request.form.get("price", type=float)
     category_id = request.form.get("category_id", type=int)
@@ -311,16 +342,35 @@ def edit_item(item_id):
     item.category = new_category
 
     if image and name:
-        ext = os.path.splitext(image.filename)[1]
-        safe_name = secure_filename(name.lower().replace(" ", "_")) + ext
+        ext = os.path.splitext(image.filename)[1].lower()
 
+        if ext not in ALLOWED_EXTENSIONS:
+            flash("Formato de imagem não permitido. Use JPG ou PNG.", "danger")
+            return redirect(url_for("dashboard.list_items"))
+
+        image.seek(0, os.SEEK_END)
+        image_size = image.tell()
+        image.seek(0)
+
+        if image_size > MAX_SIZE_MB * 1024 * 1024:
+            flash("Imagem muito grande! Máximo permitido: 5MB.", "danger")
+            return redirect(url_for("dashboard.list_items"))
+
+        safe_name = secure_filename(name.lower().replace(" ", "_")) + ext
         folder = os.path.join(
             current_app.root_path, "static", "uploads", restaurant.slug
         )
         os.makedirs(folder, exist_ok=True)
-
         filepath = os.path.join(folder, safe_name)
-        image.save(filepath)
+
+        try:
+            img = Image.open(image)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            img.save(filepath, format="JPEG", quality=70, optimize=True)
+        except Exception as e:
+            flash(f"Erro ao processar imagem: {e}", "danger")
+            return redirect(url_for("dashboard.list_items"))
 
         item.image_filename = f"{restaurant.slug}/{safe_name}"
 
