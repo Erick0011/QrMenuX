@@ -1,0 +1,9 @@
+{% extends "errors/base.html" %} {% block title %}Página não encontrada{%
+endblock %} {% block content %}
+<i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+<h1 class="display-4 mt-3">404 - Página não encontrada</h1>
+<p class="lead">A página que você procura não existe.</p>
+<a href="{{ url_for('public.index') }}" class="btn btn-outline-primary mt-3"
+  >Página inicial</a
+>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "errors/base.html" %} {% block title %}Acesso negado{% endblock %} {%
+block content %}
+<i class="bi bi-lock display-1 text-danger"></i>
+<h1 class="display-4 mt-3">403 - Acesso negado</h1>
+<p class="lead">Você não tem permissão para acessar esta área.</p>
+<a href="{{ url_for('public.index') }}" class="btn btn-secondary mt-3"
+  >Voltar ao início</a
+>
+{% endblock %}

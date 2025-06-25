@@ -1,0 +1,9 @@
+{% extends "errors/base.html" %} {% block title %}Não autorizado{% endblock %}
+{% block content %}
+<i class="bi bi-person-x display-1 text-warning"></i>
+<h1 class="display-4 mt-3">401 - Acesso não autorizado</h1>
+<p class="lead">Você precisa estar autenticado para acessar esta página.</p>
+<a href="{{ url_for('auth.login') }}" class="btn btn-primary mt-3"
+  >Fazer login</a
+>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "errors/base.html" %} {% block title %}Erro do servidor{% endblock %}
+{% block content %}
+<i class="bi bi-bug-fill display-1 text-danger"></i>
+<h1 class="display-4 mt-3">500 - Erro interno do servidor</h1>
+<p class="lead">Algo deu errado. Já estamos verificando isso!</p>
+<a href="{{ url_for('public.index') }}" class="btn btn-dark mt-3">Voltar</a>
+{% endblock %}

@@ -45,6 +45,11 @@ def create_app():
     app.register_blueprint(public_routes.bp)
     app.register_blueprint(admin_routes.bp)
 
+    # Registro de manipuladores de erros
+    from .routes.error_handlers import register_error_handlers
+
+    register_error_handlers(app)
+
     # Configurações do Flask-Mail
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
     app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
