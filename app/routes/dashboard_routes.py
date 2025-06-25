@@ -34,12 +34,14 @@ from datetime import time, datetime, timedelta
 from sqlalchemy import delete
 from sqlalchemy import func, extract
 from app.utils.now_angola import now_angola
+from app.utils.role_required import role_required
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
 
 @bp.route("/")
 @login_required
+@role_required("restaurant")
 def index():
     restaurant = current_user.restaurant
 
@@ -119,6 +121,7 @@ def index():
 
 @bp.route("/subscription", methods=["GET"])
 @login_required
+@role_required("restaurant")
 def subscription():
     restaurant = current_user.restaurant
     sub = restaurant.subscription
@@ -137,6 +140,7 @@ def subscription():
 
 @bp.route("/categories", methods=["GET", "POST"])
 @login_required
+@role_required("restaurant")
 def list_categories():
     restaurant = current_user.restaurant
     if request.method == "POST":
@@ -158,6 +162,7 @@ def list_categories():
 
 @bp.route("/categories/<int:category_id>/toggle")
 @login_required
+@role_required("restaurant")
 def toggle_category(category_id):
     category = Category.query.get_or_404(category_id)
 
@@ -177,6 +182,7 @@ def toggle_category(category_id):
 
 @bp.route("/categories/<int:category_id>/delete")
 @login_required
+@role_required("restaurant")
 def delete_category(category_id):
     category = Category.query.get_or_404(category_id)
 
@@ -202,6 +208,7 @@ def delete_category(category_id):
 
 @bp.route("/categories/<int:category_id>/edit", methods=["POST"])
 @login_required
+@role_required("restaurant")
 def edit_category(category_id):
     category = Category.query.get_or_404(category_id)
     if category.restaurant != current_user.restaurant:
@@ -218,6 +225,7 @@ def edit_category(category_id):
 
 @bp.route("/items", methods=["GET"])
 @login_required
+@role_required("restaurant")
 def list_items():
     restaurant = current_user.restaurant
     categories = Category.query.filter_by(restaurant=restaurant).all()
@@ -242,6 +250,7 @@ def list_items():
 
 @bp.route("/items/create", methods=["POST"])
 @login_required
+@role_required("restaurant")
 def create_item():
     ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
     MAX_SIZE_MB = 5
@@ -314,6 +323,7 @@ def create_item():
 
 @bp.route("/items/edit/<int:item_id>", methods=["POST", "GET"])
 @login_required
+@role_required("restaurant")
 def edit_item(item_id):
     ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
     MAX_SIZE_MB = 5
@@ -381,6 +391,7 @@ def edit_item(item_id):
 
 @bp.route("/items/<int:item_id>/toggle")
 @login_required
+@role_required("restaurant")
 def toggle_item(item_id):
     item = MenuItem.query.get_or_404(item_id)
 
@@ -403,6 +414,7 @@ def toggle_item(item_id):
 
 @bp.route("/items/<int:item_id>/delete")
 @login_required
+@role_required("restaurant")
 def delete_item(item_id):
     item = MenuItem.query.get_or_404(item_id)
 
@@ -425,6 +437,7 @@ def delete_item(item_id):
 
 @bp.route("/profile", methods=["GET", "POST"])
 @login_required
+@role_required("restaurant")
 def profile():
     user = current_user
     restaurant = user.restaurant
@@ -457,6 +470,7 @@ def profile():
 
 @bp.route("/qrcode")
 @login_required
+@role_required("restaurant")
 def qrcode_page():
     restaurant = current_user.restaurant
     link = url_for("public.menu", slug=restaurant.slug, _external=True)
@@ -506,6 +520,7 @@ def qrcode_page():
 
 @bp.route("/operating_hours", methods=["GET", "POST"])
 @login_required
+@role_required("restaurant")
 def operating_hours():
     restaurant = current_user.restaurant
 
@@ -548,6 +563,7 @@ def operating_hours():
 
 @bp.route("/tables", methods=["GET", "POST"])
 @login_required
+@role_required("restaurant")
 def list_tables():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -573,6 +589,7 @@ def list_tables():
 
 @bp.route("/table/<int:table_id>/edit", methods=["POST"])
 @login_required
+@role_required("restaurant")
 def edit_table(table_id):
     table = Table.query.get_or_404(table_id)
 
@@ -596,6 +613,7 @@ def edit_table(table_id):
 
 @bp.route("/table/<int:table_id>/delete")
 @login_required
+@role_required("restaurant")
 def delete_table(table_id):
     table = Table.query.get_or_404(table_id)
 
@@ -611,6 +629,7 @@ def delete_table(table_id):
 
 @bp.route("/reservations", methods=["GET", "POST"])
 @login_required
+@role_required("restaurant")
 def reservations():
     # Ações de POST (mudar status ou deletar)
     if request.method == "POST":
@@ -713,6 +732,7 @@ class ReceiptPDF(FPDF):
 
 @bp.route("/reservations/<int:id>/receipt", methods=["GET"])
 @login_required
+@role_required("restaurant")
 def reservation_receipt(id):
     reserva = Reservation.query.get_or_404(id)
 
@@ -787,6 +807,7 @@ def reservation_receipt(id):
 
 @bp.route("/reservations/<int:id>/edit", methods=["POST"])
 @login_required
+@role_required("restaurant")
 def update_reservation(id):
     r = Reservation.query.get_or_404(id)
 
