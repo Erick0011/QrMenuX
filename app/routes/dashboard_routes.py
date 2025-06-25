@@ -35,8 +35,19 @@ from sqlalchemy import delete
 from sqlalchemy import func, extract
 from app.utils.now_angola import now_angola
 from app.utils.role_required import role_required
+from app.errors.exceptions import RestauranteInativoError
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
+
+
+@bp.before_request
+def verificar_restaurante_ativo():
+    if not current_user.is_authenticated:
+        return
+
+    if current_user.role == "restaurant":
+        if not current_user.restaurant or not current_user.restaurant.is_active:
+            raise RestauranteInativoError()
 
 
 @bp.route("/")

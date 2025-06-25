@@ -1,6 +1,7 @@
 import traceback
 from flask import render_template, request, current_app
 from app import db
+from app.errors.exceptions import RestauranteInativoError
 
 
 def register_error_handlers(app):
@@ -29,3 +30,10 @@ def register_error_handlers(app):
         log_error(500, error)
         db.session.rollback()
         return render_template("errors/500.html"), 500
+
+    @app.errorhandler(RestauranteInativoError)
+    def restaurante_inativo_error(e):
+        current_app.logger.warning(
+            f"Restaurante inativo tentou acessar: {request.path}"
+        )
+        return render_template("errors/restaurante_inativo.html"), 451
