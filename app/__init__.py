@@ -6,7 +6,7 @@ from flask_wtf import CSRFProtect
 from flask_talisman import Talisman
 from app.security import CSP_POLICY
 from dotenv import load_dotenv
-
+from flask_mail import Mail
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -19,6 +19,7 @@ login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 migrate = Migrate()
 csrf = CSRFProtect()
+mail = Mail()
 
 
 def create_app():
@@ -43,6 +44,16 @@ def create_app():
     app.register_blueprint(dashboard_routes.bp)
     app.register_blueprint(public_routes.bp)
     app.register_blueprint(admin_routes.bp)
+
+    # Configurações do Flask-Mail
+    app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
+    app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
+    app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS") == "True"
+    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+    app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
+
+    mail.init_app(app)
 
     # Logging
     if not os.path.exists("logs"):
