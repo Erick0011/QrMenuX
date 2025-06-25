@@ -99,3 +99,5 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
     raise self.mapping[code](*args, **kwargs)
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
 
+2025-06-25 23:49:15,239 [WARNING] app: Restaurante inativo tentou acessar: /dashboard/
+2025-06-25 23:49:37,276 [WARNING] app: Restaurante inativo tentou acessar: /dashboard/
