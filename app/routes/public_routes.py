@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from app.utils.now_angola import now_angola
 from app.routes import auth_routes
+from app import csrf
 from app import db
 
 
@@ -41,6 +42,7 @@ def menu(slug):
     )
 
 
+@csrf.exempt
 @bp.route("/track-item-view", methods=["POST"])
 def track_item_view():
     data = request.get_json()
@@ -64,6 +66,7 @@ def track_item_view():
     return jsonify({"status": "ok"})
 
 
+@csrf.exempt
 @bp.route("/api/visita/<slug>", methods=["POST"])
 def registrar_visita(slug):
     ip = request.remote_addr
