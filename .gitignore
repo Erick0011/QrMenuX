@@ -1,5 +1,8 @@
+# Arquivos sensíveis e de configuração
 .env
 .flaskenv
+
+# Scripts de uso interno
 comandos_flask.md
 seed_dynamic.py
 seed_rest_1.py
@@ -7,14 +10,19 @@ seed.py
 pull.sh
 push.sh
 
-
+# Banco de dados
 instance/*.db
 *.sqlite3
 *.sqlite
 *.db
 
+# Logs e arquivos temporários
 *.log
 logs/
 *.bak
 *.tmp
 *.pid
+
+# Cache do Python
+__pycache__/
+*.pyc
