@@ -72,11 +72,12 @@ def index():
     )
 
     # --- Analytics dos últimos 7 dias ---
-    last_7_days = now_angola().date() - timedelta(days=6)
+    last_7_days = now_angola().date() - timedelta(days=7)
     analytics = (
         DailyAnalytics.query.filter(
             DailyAnalytics.restaurant_id == restaurant.id,
             DailyAnalytics.date >= last_7_days,
+            DailyAnalytics.date < now_angola().date(),
         )
         .order_by(DailyAnalytics.date)
         .all()
