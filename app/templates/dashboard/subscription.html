@@ -1,31 +1,54 @@
-{% extends "dashboard/dashboard_base.html" %}
-{% block title %}Assinatura{% endblock %}
-{% block content %}
-<div class="mx-auto text-center" style="max-width:600px;">
+{% extends "dashboard/dashboard_base.html" %} {% block title %}Assinatura{%
+endblock %} {% block content %}
+<div class="mx-auto text-center" style="max-width: 600px">
   <h3>Informações da Assinatura</h3>
-  <hr>
+  <hr />
 
   {% if not subscription %}
-    <div class="alert alert-danger">Nenhuma assinatura encontrada para o seu restaurante.</div>
+  <div class="alert alert-danger">
+    Nenhuma assinatura encontrada para o seu restaurante.
+  </div>
   {% else %}
-    <ul class="list-group text-start mb-4">
-      <li class="list-group-item"><strong>Início:</strong> {{ subscription.start_date.strftime("%d/%m/%Y") }}</li>
-      <li class="list-group-item"><strong>Fim:</strong> {{ subscription.end_date.strftime("%d/%m/%Y") }}</li>
-      <li class="list-group-item"><strong>Dias restantes:</strong> {{ days_left }}</li>
-      <li class="list-group-item"><strong>Status:</strong>
-        {% if expired %}
-          <span class="badge bg-danger">Expirada</span>
-        {% else %}
-          <span class="badge bg-success">Ativa</span>
-        {% endif %}
-      </li>
-    </ul>
+  <ul class="list-group text-start mb-4">
+    <li class="list-group-item">
+      <strong>Início:</strong> {{ subscription.start_date.strftime("%d/%m/%Y")
+      }}
+    </li>
+    <li class="list-group-item">
+      <strong>Fim:</strong> {{ subscription.end_date.strftime("%d/%m/%Y") }}
+    </li>
+    <li class="list-group-item">
+      <strong>Dias restantes:</strong> {{ days_left }}
+    </li>
+    <li class="list-group-item">
+      <strong>Status:</strong>
+      {% if expired %}
+      <span class="badge bg-danger">Expirada</span>
+      {% else %}
+      <span class="badge bg-success">Ativa</span>
+      {% endif %}
+    </li>
+  </ul>
   {% endif %}
 
   <div class="alert alert-warning">
     Para renovar ou ativar sua assinatura, entre em contacto:
-    <br><strong>Email:</strong> suporte@exemplo.com
-    <br><strong>WhatsApp:</strong> +244 999 999 999
+    <ul class="list-unstyled">
+      <li>
+        <a
+          href="https://wa.me/244954669387?text=Olá!%20Gostaria%20de%20saber%20mais%20sobre%20o%20QrMenuX."
+        >
+          <i class="bi bi-whatsapp me-2 text-success"></i
+          ><strong>WhatsApp:</strong> +244 954 669 387
+        </a>
+      </li>
+      <li>
+        <a href="mailto:contacto.nextkode@gmail.com">
+          <i class="bi bi-envelope-fill me-2 text-success"></i
+          ><strong>Email:</strong> contacto.nextkode@gmail.com
+        </a>
+      </li>
+    </ul>
   </div>
 </div>
 {% endblock %}
