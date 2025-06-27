@@ -8,7 +8,7 @@ from app.models import (
     ItemView,
     PageVisit,
 )
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from app.utils.now_angola import now_angola
 from app.routes import auth_routes
@@ -119,6 +119,25 @@ def reservation(slug):
             ).first()
 
             if mesa_escolhida:
+                # Verifica se o restaurante está aberto nesse dia
+                day_name = data_reserva.strftime("%A")
+                operating_hour = OperatingHour.query.filter_by(
+                    restaurant_id=restaurant.id, day_of_week=day_name
+                ).first()
+
+                if data_reserva < date.today():
+                    flash(
+                        "Não é possível fazer reservas para datas no passado.", "danger"
+                    )
+                    return redirect(url_for("public.reservation", slug=slug))
+
+                if (
+                    not operating_hour
+                    or operating_hour.open_time == operating_hour.close_time
+                ):
+                    flash("O restaurante está fechado nesse dia.", "danger")
+                    return redirect(url_for("public.reservation", slug=slug))
+
                 slots_disponiveis = gerar_slots_disponiveis(
                     restaurant_id=restaurant.id,
                     mesa_id=mesa_escolhida.id,
@@ -141,6 +160,10 @@ def reservation(slug):
             flash("Mesa inválida.", "danger")
             return redirect(url_for("public.reservation", slug=slug))
 
+        if start.date() < date.today():
+            flash("Não é possível fazer reservas para datas no passado.", "danger")
+            return redirect(url_for("public.reservation", slug=slug))
+
         if people > table.capacity:
             if people <= table.capacity + 2:
                 flash(
@@ -160,6 +183,7 @@ def reservation(slug):
         operating_hour = OperatingHour.query.filter_by(
             restaurant_id=restaurant.id, day_of_week=day_name
         ).first()
+
         if not operating_hour or operating_hour.open_time == operating_hour.close_time:
             flash("Restaurante fechado neste dia.", "danger")
             return redirect(url_for("public.reservation", slug=slug))
