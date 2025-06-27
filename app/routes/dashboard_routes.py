@@ -36,6 +36,8 @@ from sqlalchemy import func, extract
 from app.utils.now_angola import now_angola
 from app.utils.role_required import role_required
 from app.errors.exceptions import RestauranteInativoError
+import phonenumbers
+
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -462,7 +464,29 @@ def profile():
             user.password = generate_password_hash(new_password)
 
         restaurant.email = request.form.get("restaurant_email").strip()
-        restaurant.phone = request.form.get("restaurant_phone").strip()
+        raw_phone = request.form["full_phone"]
+        print(f"[DEBUG] raw_phone from form: {raw_phone}")
+
+        try:
+            phone_obj = phonenumbers.parse(raw_phone, None)
+            print(f"[DEBUG] phone_obj after parse: {phone_obj}")
+
+            if not phonenumbers.is_valid_number(phone_obj):
+                print("[DEBUG] Número de telefone inválido.")
+                flash("Número de telefone inválido.", "danger")
+                return redirect(url_for("dashboard.profile"))
+
+            formatted_phone = phonenumbers.format_number(
+                phone_obj, phonenumbers.PhoneNumberFormat.INTERNATIONAL
+            )
+            print(f"[DEBUG] formatted_phone: {formatted_phone}")
+            restaurant.phone = formatted_phone
+
+        except phonenumbers.NumberParseException as e:
+            print(f"[DEBUG] NumberParseException: {e}")
+            flash("Número de telefone mal formatado.", "danger")
+            return redirect(url_for("dashboard.profile"))
+
         restaurant.description = request.form.get("restaurant_description").strip()
         restaurant.address = request.form["restaurant_address"].strip()
         restaurant.theme_color = request.form["theme_color"].strip()

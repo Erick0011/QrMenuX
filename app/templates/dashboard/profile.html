@@ -63,18 +63,17 @@
       <div class="invalid-feedback">Informe um email válido.</div>
     </div>
     <div class="mb-3">
-      <label>Telefone / WhatsApp</label>
+      <label for="customer_phone" class="form-label w-100">
+        <i class="bi bi-telephone me-1"></i>Telefone:
+      </label>
       <input
-        type="text"
-        name="restaurant_phone"
+        type="tel"
+        id="customer_phone"
+        name="customer_phone"
         class="form-control"
-        value="{{ restaurant.phone }}"
-        pattern="^\+?\d{8,15}$"
+        value="{{ restaurant.phone}}"
         required
       />
-      <div class="invalid-feedback">
-        Informe um telefone válido. Com o codigo do país (Ex: +244 9XX XXX XXX)
-      </div>
     </div>
     <div class="mb-3">
       <label>Endereço</label>
@@ -120,6 +119,37 @@
     </button>
   </form>
 </div>
+
+<!-- intl-tel-input JS -->
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+<script>
+  const input = document.querySelector("#customer_phone");
+  const iti = window.intlTelInput(input, {
+    preferredCountries: ["ao", "br", "pt", "us"],
+    separateDialCode: true,
+    utilsScript:
+      "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+  });
+
+  document
+    .getElementById("profileForm")
+    .addEventListener("submit", function (e) {
+      if (!iti.isValidNumber()) {
+        e.preventDefault();
+        alert(
+          "Número de telefone inválido. Verifique o código do país e o número digitado."
+        );
+        return;
+      }
+
+      const fullPhoneInput = document.createElement("input");
+      fullPhoneInput.type = "hidden";
+      fullPhoneInput.name = "full_phone";
+      fullPhoneInput.value = iti.getNumber();
+      this.appendChild(fullPhoneInput);
+    });
+</script>
 
 <script>
   // Bootstrap 5 validation

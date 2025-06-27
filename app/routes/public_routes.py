@@ -11,7 +11,7 @@ from app.models import (
 from datetime import datetime, timedelta, date
 from app.utils.gerar_slots_disponiveis import gerar_slots_disponiveis
 from app.utils.now_angola import now_angola
-from app.routes import auth_routes
+import phonenumbers
 from app import csrf
 from app import db
 
@@ -149,7 +149,7 @@ def reservation(slug):
     if request.method == "POST":
         table_id = int(request.form["table_id"])
         name = request.form["customer_name"].strip()
-        phone = request.form["customer_phone"].strip()
+        raw_phone = request.form["full_phone"]
         start = datetime.fromisoformat(request.form["start_time"])
         end = datetime.fromisoformat(request.form["end_time"])
         people = int(request.form["people"])
@@ -183,6 +183,21 @@ def reservation(slug):
         operating_hour = OperatingHour.query.filter_by(
             restaurant_id=restaurant.id, day_of_week=day_name
         ).first()
+
+        try:
+            phone_obj = phonenumbers.parse(raw_phone, None)
+
+            if not phonenumbers.is_valid_number(phone_obj):
+                flash("Número de telefone inválido.", "danger")
+                return redirect(url_for("public.reservation", slug=slug))
+
+            phone = phonenumbers.format_number(
+                phone_obj, phonenumbers.PhoneNumberFormat.INTERNATIONAL
+            )
+
+        except phonenumbers.NumberParseException:
+            flash("Número de telefone mal formatado.", "danger")
+            return redirect(url_for("public.reservation", slug=slug))
 
         if not operating_hour or operating_hour.open_time == operating_hour.close_time:
             flash("Restaurante fechado neste dia.", "danger")
