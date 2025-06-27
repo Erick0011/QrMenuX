@@ -469,21 +469,20 @@ def profile():
 
         try:
             phone_obj = phonenumbers.parse(raw_phone, None)
-            print(f"[DEBUG] phone_obj after parse: {phone_obj}")
 
             if not phonenumbers.is_valid_number(phone_obj):
-                print("[DEBUG] Número de telefone inválido.")
+
                 flash("Número de telefone inválido.", "danger")
                 return redirect(url_for("dashboard.profile"))
 
             formatted_phone = phonenumbers.format_number(
                 phone_obj, phonenumbers.PhoneNumberFormat.INTERNATIONAL
             )
-            print(f"[DEBUG] formatted_phone: {formatted_phone}")
+
             restaurant.phone = formatted_phone
 
         except phonenumbers.NumberParseException as e:
-            print(f"[DEBUG] NumberParseException: {e}")
+
             flash("Número de telefone mal formatado.", "danger")
             return redirect(url_for("dashboard.profile"))
 
