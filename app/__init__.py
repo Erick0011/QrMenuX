@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -73,5 +73,9 @@ def create_app():
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
     app.logger.info("Aplicação iniciada!")
+
+    @app.route("/favicon.ico")
+    def favicon():
+        return redirect(url_for("static", filename="img/favicon.png"))
 
     return app
