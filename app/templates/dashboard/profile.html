@@ -135,7 +135,10 @@
   document
     .getElementById("profileForm")
     .addEventListener("submit", function (e) {
-      if (!iti.isValidNumber()) {
+      const fullNumber = iti.getNumber(); // Ex: +244971123456
+      const isValid = iti.isValidNumber() || fullNumber.startsWith("+24497");
+
+      if (!isValid) {
         e.preventDefault();
         alert(
           "Número de telefone inválido. Verifique o código do país e o número digitado."
@@ -146,7 +149,7 @@
       const fullPhoneInput = document.createElement("input");
       fullPhoneInput.type = "hidden";
       fullPhoneInput.name = "full_phone";
-      fullPhoneInput.value = iti.getNumber();
+      fullPhoneInput.value = fullNumber;
       this.appendChild(fullPhoneInput);
     });
 </script>
