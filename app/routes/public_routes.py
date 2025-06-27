@@ -245,7 +245,21 @@ def reservation(slug):
             db.session.commit()
             flash("Reserva criada com sucesso!", "success")
 
-        return redirect(url_for("public.reservation", slug=slug))
+        import urllib.parse
+
+        whatsapp_number = restaurant.phone.replace(" ", "").replace("+", "")
+        mensagem = f"Olá, fiz uma reserva no nome de {name} para {people} pessoas no dia {start.strftime('%d/%m/%Y')} às {start.strftime('%H:%M')}."
+        mensagem_encoded = urllib.parse.quote(mensagem)
+        whatsapp_link = f"https://wa.me/{whatsapp_number}?text={mensagem_encoded}"
+
+        return render_template(
+            "public/reservation_redirect.html",
+            whatsapp_link=whatsapp_link,
+            nome=name,
+            data=start.strftime("%d/%m/%Y"),
+            hora=start.strftime("%H:%M"),
+            restaurant=restaurant,
+        )
 
     reservations = (
         Reservation.query.join(Table)
