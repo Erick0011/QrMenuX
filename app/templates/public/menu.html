@@ -347,7 +347,7 @@
         const restaurantSlug = "{{ restaurant.slug }}";
 
         // Enviar para o backend (analytics simples)
-        fetch('/track-item-view', {
+        fetch('`${window.location.origin}/track-item-view`', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -366,7 +366,7 @@
       if (!sessionStorage.getItem(visitKey)) {
         sessionStorage.setItem(visitKey, "true");
 
-        fetch(`/api/visita/{{ restaurant.slug }}`, {
+        fetch(`${window.location.origin}/api/visita/{{ restaurant.slug }}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

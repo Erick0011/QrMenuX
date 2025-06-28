@@ -18,7 +18,7 @@ try:
         populate_daily_analytics()
 
         print("[✓] Populando KPIs demo.")
-        populate_demo_analytics
+        populate_demo_analytics()
 
         print("[✓] Todas as tarefas concluídas com sucesso.")
 
